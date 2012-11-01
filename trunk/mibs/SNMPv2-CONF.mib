@@ -1,0 +1,325 @@
+-- WinAgents MIB Extraction Wizard
+-- Extracted from rfc2580.txt 16.03.2005 20:21:49
+
+SNMPv2-CONF DEFINITIONS ::= BEGIN
+
+--IMPORTS ObjectName, NotificationName, ObjectSyntax
+  --                                             FROM SNMPv2-SMI;
+
+-- definitions for conformance groups
+
+-- MIB Extraction: All MACRO definitions are predefined by compiler
+-- commented by MIB Extraction: OBJECT-GROUP MACRO ::=
+-- commented by MIB Extraction: BEGIN
+-- commented by MIB Extraction:     TYPE NOTATION ::=
+-- commented by MIB Extraction:                   ObjectsPart
+-- commented by MIB Extraction:                   "STATUS" Status
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:                   ReferPart
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     VALUE NOTATION ::=
+-- commented by MIB Extraction:                   value(VALUE OBJECT IDENTIFIER)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ObjectsPart ::=
+-- commented by MIB Extraction:                   "OBJECTS" "{" Objects "}"
+-- commented by MIB Extraction:     Objects ::=
+-- commented by MIB Extraction:                   Object
+-- commented by MIB Extraction:                 | Objects "," Object
+-- commented by MIB Extraction:     Object ::=
+-- commented by MIB Extraction:                   value(ObjectName)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Status ::=
+-- commented by MIB Extraction:                   "current"
+-- commented by MIB Extraction:                 | "deprecated"
+-- commented by MIB Extraction:                 | "obsolete"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ReferPart ::=
+-- commented by MIB Extraction:                   "REFERENCE" Text
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      a character string as defined in [2]
+-- commented by MIB Extraction:     Text ::= value(IA5String)
+-- commented by MIB Extraction: END
+
+-- more definitions for conformance groups
+
+-- MIB Extraction: All MACRO definitions are predefined by compiler
+-- commented by MIB Extraction: NOTIFICATION-GROUP MACRO ::=
+-- commented by MIB Extraction: BEGIN
+-- commented by MIB Extraction:     TYPE NOTATION ::=
+-- commented by MIB Extraction:                   NotificationsPart
+-- commented by MIB Extraction:                   "STATUS" Status
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:                   ReferPart
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     VALUE NOTATION ::=
+-- commented by MIB Extraction:                   value(VALUE OBJECT IDENTIFIER)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     NotificationsPart ::=
+-- commented by MIB Extraction:                   "NOTIFICATIONS" "{" Notifications "}"
+-- commented by MIB Extraction:     Notifications ::=
+-- commented by MIB Extraction:                   Notification
+-- commented by MIB Extraction:                 | Notifications "," Notification
+-- commented by MIB Extraction:     Notification ::=
+-- commented by MIB Extraction:                   value(NotificationName)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Status ::=
+-- commented by MIB Extraction:                   "current"
+-- commented by MIB Extraction:                 | "deprecated"
+-- commented by MIB Extraction:                 | "obsolete"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ReferPart ::=
+-- commented by MIB Extraction:                   "REFERENCE" Text
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      a character string as defined in [2]
+-- commented by MIB Extraction:     Text ::= value(IA5String)
+-- commented by MIB Extraction: END
+-- definitions for compliance statements
+
+-- MIB Extraction: All MACRO definitions are predefined by compiler
+-- commented by MIB Extraction: MODULE-COMPLIANCE MACRO ::=
+-- commented by MIB Extraction: BEGIN
+-- commented by MIB Extraction:     TYPE NOTATION ::=
+-- commented by MIB Extraction:                   "STATUS" Status
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:                   ReferPart
+-- commented by MIB Extraction:                   ModulePart
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     VALUE NOTATION ::=
+-- commented by MIB Extraction:                   value(VALUE OBJECT IDENTIFIER)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Status ::=
+-- commented by MIB Extraction:                   "current"
+-- commented by MIB Extraction:                 | "deprecated"
+-- commented by MIB Extraction:                 | "obsolete"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ReferPart ::=
+-- commented by MIB Extraction:                   "REFERENCE" Text
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ModulePart ::=
+-- commented by MIB Extraction:                   Modules
+-- commented by MIB Extraction:     Modules ::=
+-- commented by MIB Extraction:                   Module
+-- commented by MIB Extraction:                 | Modules Module
+-- commented by MIB Extraction:     Module ::=
+-- commented by MIB Extraction:                    name of module
+-- commented by MIB Extraction:                   "MODULE" ModuleName
+-- commented by MIB Extraction:                   MandatoryPart
+-- commented by MIB Extraction:                   CompliancePart
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ModuleName ::=
+-- commented by MIB Extraction:                    identifier must start with uppercase letter
+-- commented by MIB Extraction:                   identifier ModuleIdentifier
+-- commented by MIB Extraction:                    must not be empty unless contained
+-- commented by MIB Extraction:                    in MIB Module
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:     ModuleIdentifier ::=
+-- commented by MIB Extraction:                   value(OBJECT IDENTIFIER)
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     MandatoryPart ::=
+-- commented by MIB Extraction:                   "MANDATORY-GROUPS" "{" Groups "}"
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Groups ::=
+-- commented by MIB Extraction:                   Group
+-- commented by MIB Extraction:                 | Groups "," Group
+-- commented by MIB Extraction:     Group ::=
+-- commented by MIB Extraction:                   value(OBJECT IDENTIFIER)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     CompliancePart ::=
+-- commented by MIB Extraction:                   Compliances
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Compliances ::=
+-- commented by MIB Extraction:                   Compliance
+-- commented by MIB Extraction:                 | Compliances Compliance
+-- commented by MIB Extraction:     Compliance ::=
+-- commented by MIB Extraction:                   ComplianceGroup
+-- commented by MIB Extraction:                 | Object
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ComplianceGroup ::=
+-- commented by MIB Extraction:                   "GROUP" value(OBJECT IDENTIFIER)
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Object ::=
+-- commented by MIB Extraction:                   "OBJECT" value(ObjectName)
+-- commented by MIB Extraction:                   SyntaxPart
+-- commented by MIB Extraction:                   WriteSyntaxPart
+-- commented by MIB Extraction:                   AccessPart
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      must be a refinement for object's SYNTAX clause
+-- commented by MIB Extraction:     SyntaxPart ::= "SYNTAX" Syntax
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      must be a refinement for object's SYNTAX clause
+-- commented by MIB Extraction:     WriteSyntaxPart ::= "WRITE-SYNTAX" Syntax
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Syntax ::=     Must be one of the following:
+-- commented by MIB Extraction:                         a base type (or its refinement),
+-- commented by MIB Extraction:                         a textual convention (or its refinement), or
+-- commented by MIB Extraction:                         a BITS pseudo-type
+-- commented by MIB Extraction:                   type
+-- commented by MIB Extraction:                 | "BITS" "{" NamedBits "}"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     NamedBits ::= NamedBit
+-- commented by MIB Extraction:                 | NamedBits "," NamedBit
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     NamedBit ::= identifier "(" number ")"  number is nonnegative
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     AccessPart ::=
+-- commented by MIB Extraction:                   "MIN-ACCESS" Access
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:     Access ::=
+-- commented by MIB Extraction:                   "not-accessible"
+-- commented by MIB Extraction:                 | "accessible-for-notify"
+-- commented by MIB Extraction:                 | "read-only"
+-- commented by MIB Extraction:                 | "read-write"
+-- commented by MIB Extraction:                 | "read-create"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      a character string as defined in [2]
+-- commented by MIB Extraction:     Text ::= value(IA5String)
+-- commented by MIB Extraction: END
+
+-- definitions for capabilities statements
+
+-- MIB Extraction: All MACRO definitions are predefined by compiler
+-- commented by MIB Extraction: AGENT-CAPABILITIES MACRO ::=
+-- commented by MIB Extraction: BEGIN
+-- commented by MIB Extraction:     TYPE NOTATION ::=
+-- commented by MIB Extraction:                   "PRODUCT-RELEASE" Text
+-- commented by MIB Extraction:                   "STATUS" Status
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:                   ReferPart
+-- commented by MIB Extraction:                   ModulePart
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     VALUE NOTATION ::=
+-- commented by MIB Extraction:                   value(VALUE OBJECT IDENTIFIER)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Status ::=
+-- commented by MIB Extraction:                   "current"
+-- commented by MIB Extraction:                 | "obsolete"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ReferPart ::=
+-- commented by MIB Extraction:                   "REFERENCE" Text
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ModulePart ::=
+-- commented by MIB Extraction:                   Modules
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:     Modules ::=
+-- commented by MIB Extraction:                   Module
+-- commented by MIB Extraction:                 | Modules Module
+-- commented by MIB Extraction:     Module ::=
+-- commented by MIB Extraction:                    name of module
+-- commented by MIB Extraction:                   "SUPPORTS" ModuleName
+-- commented by MIB Extraction:                   "INCLUDES" "{" Groups "}"
+-- commented by MIB Extraction:                   VariationPart
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ModuleName ::=
+-- commented by MIB Extraction:                    identifier must start with uppercase letter
+-- commented by MIB Extraction:                   identifier ModuleIdentifier
+-- commented by MIB Extraction:     ModuleIdentifier ::=
+-- commented by MIB Extraction:                   value(OBJECT IDENTIFIER)
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Groups ::=
+-- commented by MIB Extraction:                   Group
+-- commented by MIB Extraction:                 | Groups "," Group
+-- commented by MIB Extraction:     Group ::=
+-- commented by MIB Extraction:                   value(OBJECT IDENTIFIER)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     VariationPart ::=
+-- commented by MIB Extraction:                   Variations
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:     Variations ::=
+-- commented by MIB Extraction:                   Variation
+-- commented by MIB Extraction:                 | Variations Variation
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Variation ::=
+-- commented by MIB Extraction:                   ObjectVariation
+-- commented by MIB Extraction:                 | NotificationVariation
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     NotificationVariation ::=
+-- commented by MIB Extraction:                   "VARIATION" value(NotificationName)
+-- commented by MIB Extraction:                   AccessPart
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     ObjectVariation ::=
+-- commented by MIB Extraction:                   "VARIATION" value(ObjectName)
+-- commented by MIB Extraction:                   SyntaxPart
+-- commented by MIB Extraction:                   WriteSyntaxPart
+-- commented by MIB Extraction:                   AccessPart
+-- commented by MIB Extraction:                   CreationPart
+-- commented by MIB Extraction:                   DefValPart
+-- commented by MIB Extraction:                   "DESCRIPTION" Text
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      must be a refinement for object's SYNTAX clause
+-- commented by MIB Extraction:     SyntaxPart ::= "SYNTAX" Syntax
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     WriteSyntaxPart ::= "WRITE-SYNTAX" Syntax
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Syntax ::=     Must be one of the following:
+-- commented by MIB Extraction:                         a base type (or its refinement),
+-- commented by MIB Extraction:                         a textual convention (or its refinement), or
+-- commented by MIB Extraction:                         a BITS pseudo-type
+-- commented by MIB Extraction:                   type
+-- commented by MIB Extraction:                 | "BITS" "{" NamedBits "}"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     NamedBits ::= NamedBit
+-- commented by MIB Extraction:                 | NamedBits "," NamedBit
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     NamedBit ::= identifier "(" number ")"  number is nonnegative
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     AccessPart ::=
+-- commented by MIB Extraction:                   "ACCESS" Access
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Access ::=
+-- commented by MIB Extraction:                   "not-implemented"
+-- commented by MIB Extraction:                  only "not-implemented" for notifications
+-- commented by MIB Extraction:                 | "accessible-for-notify"
+-- commented by MIB Extraction:                 | "read-only"
+-- commented by MIB Extraction:                 | "read-write"
+-- commented by MIB Extraction:                 | "read-create"
+-- commented by MIB Extraction:                  following is for backward-compatibility only
+-- commented by MIB Extraction:                 | "write-only"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     CreationPart ::=
+-- commented by MIB Extraction:                   "CREATION-REQUIRES" "{" Cells "}"
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:     Cells ::=
+-- commented by MIB Extraction:                   Cell
+-- commented by MIB Extraction:                 | Cells "," Cell
+-- commented by MIB Extraction:     Cell ::=
+-- commented by MIB Extraction:                   value(ObjectName)
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     DefValPart ::= "DEFVAL" "{" Defvalue "}"
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     Defvalue ::=   must be valid for the object's syntax
+-- commented by MIB Extraction:                    in this macro's SYNTAX clause, if present,
+-- commented by MIB Extraction:                    or if not, in object's OBJECT-TYPE macro
+-- commented by MIB Extraction:                   value(ObjectSyntax)
+-- commented by MIB Extraction:                 | "{" BitsValue "}"
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     BitsValue ::= BitNames
+-- commented by MIB Extraction:                 | empty
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     BitNames ::=  BitName
+-- commented by MIB Extraction:                 | BitNames "," BitName
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:     BitName ::= identifier
+-- commented by MIB Extraction:
+-- commented by MIB Extraction:      a character string as defined in [2]
+-- commented by MIB Extraction:     Text ::= value(IA5String)
+-- commented by MIB Extraction: END
+
+END
+
