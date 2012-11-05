@@ -1,6 +1,3 @@
--- WinAgents MIB Extraction Wizard
--- Extracted from rfc2579.txt 16.03.2005 20:21:49
-
 SNMPv2-TC DEFINITIONS ::= BEGIN
 
 IMPORTS
@@ -9,47 +6,46 @@ IMPORTS
 
 -- definition of textual conventions
 
--- MIB Extraction: All MACRO definitions are predefined by compiler
--- commented by MIB Extraction: TEXTUAL-CONVENTION MACRO ::=
--- commented by MIB Extraction: BEGIN
--- commented by MIB Extraction:     TYPE NOTATION ::=
--- commented by MIB Extraction:                   DisplayPart
--- commented by MIB Extraction:                   "STATUS" Status
--- commented by MIB Extraction:                   "DESCRIPTION" Text
--- commented by MIB Extraction:                   ReferPart
--- commented by MIB Extraction:                   "SYNTAX" Syntax
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     VALUE NOTATION ::=
--- commented by MIB Extraction:                    value(VALUE Syntax)       adapted ASN.1
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     DisplayPart ::=
--- commented by MIB Extraction:                   "DISPLAY-HINT" Text
--- commented by MIB Extraction:                 | empty
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     Status ::=
--- commented by MIB Extraction:                   "current"
--- commented by MIB Extraction:                 | "deprecated"
--- commented by MIB Extraction:                 | "obsolete"
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     ReferPart ::=
--- commented by MIB Extraction:                   "REFERENCE" Text
--- commented by MIB Extraction:                 | empty
--- commented by MIB Extraction: 
--- commented by MIB Extraction:      a character string as defined in [2]
--- commented by MIB Extraction:     Text ::= value(IA5String)
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     Syntax ::=    Must be one of the following:
--- commented by MIB Extraction:                         a base type (or its refinement), or
--- commented by MIB Extraction:                         a BITS pseudo-type
--- commented by MIB Extraction:                   type
--- commented by MIB Extraction:                 | "BITS" "{" NamedBits "}"
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     NamedBits ::= NamedBit
--- commented by MIB Extraction:                 | NamedBits "," NamedBit
--- commented by MIB Extraction: 
--- commented by MIB Extraction:     NamedBit ::=  identifier "(" number ")"  number is nonnegative
--- commented by MIB Extraction: 
--- commented by MIB Extraction: END
+TEXTUAL-CONVENTION MACRO ::=
+BEGIN
+    TYPE NOTATION ::=
+                  DisplayPart
+                  "STATUS" Status
+                  "DESCRIPTION" Text
+                  ReferPart
+                  "SYNTAX" Syntax
+
+    VALUE NOTATION ::=
+                   value(VALUE Syntax)      -- adapted ASN.1
+
+    DisplayPart ::=
+                  "DISPLAY-HINT" Text
+                | empty
+
+    Status ::=
+                  "current"
+                | "deprecated"
+                | "obsolete"
+
+    ReferPart ::=
+                  "REFERENCE" Text
+                | empty
+
+    -- a character string as defined in [2]
+    Text ::= value(IA5String)
+
+    Syntax ::=   -- Must be one of the following:
+                       -- a base type (or its refinement), or
+                       -- a BITS pseudo-type
+                  type
+                | "BITS" "{" NamedBits "}"
+
+    NamedBits ::= NamedBit
+                | NamedBits "," NamedBit
+
+    NamedBit ::=  identifier "(" number ")" -- number is nonnegative
+
+END
 
 
 
@@ -194,15 +190,6 @@ RowStatus ::= TEXTUAL-CONVENTION
             creation and deletion of conceptual rows, and is used as the
             value of the SYNTAX clause for the status column of a
             conceptual row (as described in Section 7.7.1 of [2].)
-
-
-
-
-
-
-
-
-
             The status column has six defined values:
 
                  - `active', which indicates that the conceptual row is
@@ -250,7 +237,6 @@ RowStatus ::= TEXTUAL-CONVENTION
             to make it so would fail because the agent has insufficient
             information (the state column has value `notReady').
 
-
                                      NOTE WELL
 
                  This textual convention may be used for a MIB table,
@@ -275,29 +261,6 @@ RowStatus ::= TEXTUAL-CONVENTION
 
             Also note that whenever any elements of a row exist, the
             RowStatus column must also exist.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             To summarize the effect of having a conceptual row with a
             status column having a SYNTAX clause value of RowStatus,
@@ -531,14 +494,6 @@ value         |              |      see 1|          ->C|          ->D
             `createAndWait' in order to negotiate creation of the
             conceptual row.
 
-
-
-
-
-
-
-
-
                                      NOTE WELL
 
                  Regardless of the method used to determine the column
@@ -585,8 +540,6 @@ value         |              |      see 1|          ->C|          ->D
             the response, for each column, there are three possible
             outcomes:
 
-
-
                  - a value is returned, indicating that the agent
                  implements the object-type associated with this column
                  and had sufficient information to provide a value.  For
@@ -625,15 +578,6 @@ value         |              |      see 1|          ->C|          ->D
             all `noSuchInstance' columns, if any.  Having done so, the
             value of the status column becomes `notInService', and we
             proceed to interaction 4.
-
-
-
-
-
-
-
-
-
 
             Interaction 4: Making the Conceptual Row Available
 
@@ -680,8 +624,6 @@ value         |              |      see 1|          ->C|          ->D
             are set to, and left in, the notInService state for a
             prolonged period exceeding that which is considered normal
             for such a conceptual row.
-
-
 
                              Conceptual Row Suspension
 
@@ -779,6 +721,7 @@ DateAndTime ::= TEXTUAL-CONVENTION
             displayed as:
 
                              1992-5-26,13:30:15.0,-4:0
+
             Note that if only local time is known, then timezone
             information (fields 8-10) is not present."
     SYNTAX       OCTET STRING (SIZE (8 | 11))
@@ -812,21 +755,6 @@ StorageType ::= TEXTUAL-CONVENTION
                      readOnly(5)     -- e.g., completely in ROM
                  }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 TDomain ::= TEXTUAL-CONVENTION
     STATUS       current
     DESCRIPTION
@@ -856,4 +784,3 @@ TAddress ::= TEXTUAL-CONVENTION
 
 
 END
-
