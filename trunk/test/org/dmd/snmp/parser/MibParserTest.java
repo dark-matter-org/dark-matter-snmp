@@ -23,6 +23,8 @@ public class MibParserTest {
 	public void parse1(){
 		MibParser parser = new MibParser();
 		
-		parser.parseMib(rundir + "/mibs/ALARM-MIB");
+//		parser.parseMib(rundir + "/mibs/ALARM-MIB");
+		
+		parser.parseMib(rundir + "/mibs/BELAIR-SYSTEM");
 	}
 }
