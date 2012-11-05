@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="extjars/mibble-parser-2.9.3.jar"/>
 	<classpathentry kind="lib" path="extjars/snmp4j-2.1.0.jar"/>
 	<classpathentry kind="lib" path="extjars/snmp6_0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/dark-matter-data"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
