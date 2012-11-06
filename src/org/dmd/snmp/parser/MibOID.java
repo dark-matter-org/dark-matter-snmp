@@ -4,10 +4,7 @@ package org.dmd.snmp.parser;
  * The MibOID class is used to represent the hierarchical name of a MibDefinition,
  * otherwise known as an OID.
  */
-public class MibOID {
-	
-	// The definition with which this OID is associated
-	MibDefinition			definition;
+public class MibOID extends MibDefinitionName {
 	
 	public static int 		isoID = 1;
 	public static String 	isoName = "iso";
@@ -15,9 +12,6 @@ public class MibOID {
 	// The string name of the parent OID
 	String 					parentName;
 	MibOID					parentOID;
-	
-	// The name of the identifier at this level
-	String 					name;
 	
 	// The ID at this level
 	Integer 				id;
@@ -30,32 +24,19 @@ public class MibOID {
 	 * Constructs the root ISO OID.
 	 */
 	public MibOID(){
-		definition	= null;
+		super(isoName);
 		parentName	= null;
 		parentOID	= null;
-		name 		= isoName;
 		id			= isoID;
 		fullID		= "" + isoID;
 	}
 	
 	public MibOID(String p, String n, int i){
-		definition	= null;
+		super(n);
 		parentName 	= p;
 		parentOID	= null;
-		name 		= n;
 		id			= i;
 		fullID		= null;
-	}
-	
-	/**
-	 * Sets the definition with which this identifier is associated. 
-	 * @param mb
-	 */
-	void setDefintion(MibDefinition mb){
-		if (definition != null)
-			throw(new IllegalStateException("The definition associated with an OID can only be set once!"));
-		
-		definition = mb;
 	}
 	
 	public String toString(){
@@ -63,7 +44,7 @@ public class MibOID {
 		
 		String def = "Object";
 		if (definition != null)
-			def = definition.getDefinitionName();
+			def = definition.getDefinitionTypeName();
 		
 		if (fullID == null){
 			sb.append(def + ": " + name + "(" + id + ")" + "   Parent: " + parentName);

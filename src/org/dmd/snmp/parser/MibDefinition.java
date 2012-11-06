@@ -6,19 +6,25 @@ package org.dmd.snmp.parser;
  */
 abstract public class MibDefinition {
 
-	// Most definitions have an identifier. The identifier will have a reference
+	// All definitions have an identifier. The identifier will have a reference
 	// back to its definition.
-	MibOID		oid;
+	MibDefinitionName		dname;
 	
 	// The module where this definition came from
 	MibModule	module;
 	
-	protected MibDefinition(){
-		oid = null;
-	}
+//	protected MibDefinition(){
+//		dname = null;
+//	}
 	
 	protected MibDefinition(MibOID moi){
-		oid = moi;
+		dname = moi;
+		moi.setDefintion(this);
+	}
+	
+	protected MibDefinition(MibDefinitionName mdn){
+		dname = mdn;
+		mdn.setDefintion(this);
 	}
 	
 	void setModule(MibModule mm){
@@ -27,6 +33,6 @@ abstract public class MibDefinition {
 		module = mm;
 	}
 	
-	abstract public String getDefinitionName();
+	abstract public String getDefinitionTypeName();
 	
 }

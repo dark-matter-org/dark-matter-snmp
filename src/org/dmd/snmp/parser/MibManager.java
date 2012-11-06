@@ -8,12 +8,17 @@ import java.util.TreeMap;
  */
 public class MibManager {
 	
+	// The ISO root OID is never explicitly defined, so we create it.
+	static MibOID isoOID = new MibOID();
+	
 	TreeMap<String,MibOID>	oids;
 	
 	TreeMap<String,MibModule>			modules;
 	
 	public MibManager(){
 		oids 	= new TreeMap<String, MibOID>();
+		oids.put(isoOID.getName(), isoOID);
+		
 		modules = new TreeMap<String, MibModule>();
 	}
 
@@ -34,4 +39,6 @@ public class MibManager {
 			return(false);
 		return(true);
 	}
+	
+	
 }
