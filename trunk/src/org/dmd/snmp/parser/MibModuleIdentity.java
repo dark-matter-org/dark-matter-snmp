@@ -47,15 +47,14 @@ package org.dmd.snmp.parser;
  */
 public class MibModuleIdentity extends MibDefinition {
 	
-	static String defName = "MODULE-IDENTITY";
+	static String defTypeName = "MODULE-IDENTITY";
 
 	public MibModuleIdentity(MibOID moi){
 		super(moi);
-		moi.setDefintion(this);
 	}
 
 	@Override
-	public String getDefinitionName() {
-		return(defName);
+	public String getDefinitionTypeName() {
+		return(defTypeName);
 	}
 }

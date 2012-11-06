@@ -13,16 +13,15 @@ package org.dmd.snmp.parser;
  */
 public class MibObjectIdenity extends MibDefinition {
 
-	static String defName = "OBJECT-IDENTITY";
+	static String defTypeName = "OBJECT-IDENTITY";
 
 	public MibObjectIdenity(MibOID moi){
 		super(moi);
-		moi.setDefintion(this);
 	}
 	
 	@Override
-	public String getDefinitionName() {
-		return(defName);
+	public String getDefinitionTypeName() {
+		return(defTypeName);
 	}
 
 }

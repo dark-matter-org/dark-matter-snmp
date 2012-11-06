@@ -36,6 +36,14 @@ public class MibParser {
 	
 	final static String OBJECT_TYPE_STR = "OBJECT-TYPE";
 	
+	final static String MACRO_STR = "MACRO";
+	
+	final static String END_STR = "END";
+	
+	final static String SEQUENCE_STR = "SEQUENCE";
+	
+	final static String NOTIFICATION_TYPE_STR = "NOTIFICATION-TYPE";
+	
 	final static String IMPORTS_STR = "IMPORTS";
 	
 	Classifier	classifier;
@@ -87,7 +95,10 @@ public class MibParser {
 //            	if (rawInput.length() != line.length())
 //            		System.out.println("Adjusted: " + line);
                 
-            	if (line.contains(OBJECT_IDENTIFIER_STR) && line.contains(ASSIGNMENT_STR)){
+            	if (line.contains(MACRO_STR)){
+            		parseMacro(in, line);            		
+            	}
+            	else if (line.contains(OBJECT_IDENTIFIER_STR) && line.contains(ASSIGNMENT_STR)){
             		parseObjectIdentifier(line);
             	}
             	else if (line.contains(OBJECT_IDENTITY_STR)){
@@ -99,10 +110,14 @@ public class MibParser {
             	else if (line.contains(OBJECT_TYPE_STR)){
             		parseObjectType(in, line);
             	}
+            	else if (line.contains(NOTIFICATION_TYPE_STR)){
+            		parseNotificationType(in, line);
+            	}
                 else if (line.contains(IMPORTS_STR)){
                 	parseImports(in);
+                }
+                else if (line.contains(ASSIGNMENT_STR)){
                 	
-                	// Once we've parsed the 
                 }
             }
 		} catch (FileNotFoundException e) {
@@ -146,6 +161,60 @@ public class MibParser {
         	}
         }
         
+	}
+	
+	/**
+	 * Parses MACRO sections - for example:
+	 * <pre>
+	 * MODULE-IDENTITY MACRO ::=
+	 * BEGIN
+	 *     TYPE NOTATION ::=
+	 *                   "LAST-UPDATED" value(Update ExtUTCTime)
+	 *                   "ORGANIZATION" Text
+	 *                   "CONTACT-INFO" Text
+	 *                   "DESCRIPTION" Text
+	 *                   RevisionPart
+	 * 
+	 *     VALUE NOTATION ::=
+	 *                   value(VALUE OBJECT IDENTIFIER)
+	 * 
+	 *     RevisionPart ::=
+	 *                   Revisions
+	 *                 | empty
+	 *     Revisions ::=
+	 *                   Revision
+	 *                 | Revisions Revision
+	 *     Revision ::=
+	 *                   "REVISION" value(Update ExtUTCTime)
+	 *                   "DESCRIPTION" Text
+	 * 
+	 *     -- a character string as defined in section 3.1.1
+	 *     Text ::= value(IA5String)
+	 * END
+	 * </pre>
+	 * @param in the input file reader
+	 * @param first the first line of identity definition
+	 * @throws IOException  
+	 */
+	void parseMacro(LineNumberReader in, String first) throws IOException {
+		TokenArrayList tokens = commaClassifier.classify(first, false);
+		
+		String 	name 	= tokens.nth(0).getValue();
+		
+        String				rawInput;
+        while ((rawInput = in.readLine()) != null) {
+        	if (rawInput.contains(END_STR))
+        		break;
+        }
+        
+        MibDefinitionName mdn = new MibDefinitionName(name);
+        
+        MibMacro macro = new MibMacro(mdn);
+        
+        currentModule.addDefinition(macro);
+        
+        DebugInfo.debug(mdn.toString());
+		
 	}
 	
 	/**
@@ -264,6 +333,41 @@ public class MibParser {
         MibObjectType objtype = new MibObjectType(oid);
         
         currentModule.addDefinition(objtype);
+        
+        DebugInfo.debug(oid.toString());
+		
+	}
+	
+	void parseNotificationType(LineNumberReader in, String first) throws IOException {
+		TokenArrayList tokens = commaClassifier.classify(first, false);
+		
+		String 	name 	= tokens.nth(0).getValue();
+		String 	pname	= null;
+		int		id 		= -1;
+		boolean	haveAssignment 	= false;
+		
+        String				rawInput;
+        while ((rawInput = in.readLine()) != null) {
+        	String line = preProcessLine(rawInput);
+        	if ( (line.length() == 0) && haveAssignment)
+        		break;
+        	
+        	// We're looking for something like:
+        	// ::= { parentName 2 }
+        	if (line.contains(ASSIGNMENT_STR)){
+        		tokens 	= commaClassifier.classify(line, false);
+//        		DebugInfo.debug("TOKENS:\n " + tokens);
+        		pname 	= tokens.nth(2).getValue();
+        		id		= Integer.parseInt(tokens.nth(3).getValue());
+        		haveAssignment = true;
+        	}
+        }
+        
+        MibOID oid = new MibOID(pname, name, id);
+        
+        MibNotificationType notification = new MibNotificationType(oid);
+        
+        currentModule.addDefinition(notification);
         
         DebugInfo.debug(oid.toString());
 		
