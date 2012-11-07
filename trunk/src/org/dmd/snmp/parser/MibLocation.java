@@ -17,6 +17,8 @@ package org.dmd.snmp.parser;
 
 import java.io.File;
 
+import org.dmd.util.exceptions.DebugInfo;
+
 
 /**
  * The MibLocation simply indicates the name of a MIB file and its location on the file system
@@ -63,6 +65,27 @@ public class MibLocation {
 		sb.append("         jarDirectory: " + jarDirectory + "\n");
 		sb.append("          justJarName: " + justJarName + "\n\n");
 		return(sb.toString());
+	}
+	
+	public MibLocation(String fn){
+		fileName = fn.replace('\\', '/');
+		int lastSlash = fileName.lastIndexOf("/");
+		
+		if (lastSlash == -1){
+			mibName = fileName;
+			directory = null;
+		}
+		else{
+			mibName = fileName.substring(lastSlash+1);
+			directory = fileName.substring(0, lastSlash);
+		}
+		
+		DebugInfo.debug("mibName: " + mibName + "   directory: " + directory + "   fileName: " + fileName);
+		
+		// Not used in this case
+		jarFileName 	= null;
+		jarDirectory	= null;
+		justJarName		= null;
 	}
 	
 	/**
@@ -125,7 +148,7 @@ public class MibLocation {
 	/**
 	 * @return The name of the schema (i.e. the name of the .dms file without the .dms extension).
 	 */
-	public String getConfigName(){
+	public String getMibName(){
 		return(mibName);
 	}
 	
