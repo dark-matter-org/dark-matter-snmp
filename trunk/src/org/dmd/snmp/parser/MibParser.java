@@ -7,6 +7,7 @@ import java.io.LineNumberReader;
 import java.util.ArrayList;
 
 import org.dmd.util.exceptions.DebugInfo;
+import org.dmd.util.exceptions.ResultException;
 import org.dmd.util.parsing.Classifier;
 import org.dmd.util.parsing.Token;
 import org.dmd.util.parsing.TokenArrayList;
@@ -63,10 +64,12 @@ public class MibParser {
 		commaClassifier.addSeparator(SEMI_COLON, SEMI_COLON_ID);
 	}
 	
-	public void parseMib(String fn){
+	public void parseMib(String fn) throws ResultException {
 		mibManager = new MibManager();
 		
 		parseMibInternal(fn);
+		
+		mibManager.resolveDefinitions();
 	}
 
 	public void parseMibInternal(String fn){
@@ -99,7 +102,7 @@ public class MibParser {
             		parseMacro(in, line);            		
             	}
             	else if (line.contains(OBJECT_IDENTIFIER_STR) && line.contains(ASSIGNMENT_STR)){
-            		parseObjectIdentifier(line);
+            		parseObjectIdentifier(in,line);
             	}
             	else if (line.contains(OBJECT_IDENTITY_STR)){
             		parseObjectIdentity(in, line);
@@ -198,6 +201,7 @@ public class MibParser {
 	 */
 	void parseMacro(LineNumberReader in, String first) throws IOException {
 		TokenArrayList tokens = commaClassifier.classify(first, false);
+		int lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
 		
@@ -210,6 +214,7 @@ public class MibParser {
         MibDefinitionName mdn = new MibDefinitionName(name);
         
         MibMacro macro = new MibMacro(mdn);
+        macro.setLine(lineNumber);
         
         currentModule.addDefinition(macro);
         
@@ -222,8 +227,9 @@ public class MibParser {
 	 * alarmObjects OBJECT IDENTIFIER ::= { alarmMIB 1 }
 	 * @param in
 	 */
-	void parseObjectIdentifier(String line){
+	void parseObjectIdentifier(LineNumberReader in, String line){
 		TokenArrayList tokens = commaClassifier.classify(line, false);
+		int lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= tokens.nth(5).getValue();
@@ -232,6 +238,7 @@ public class MibParser {
         MibOID oid = new MibOID(pname, name, id);
         
         MibObjectIdentifier identifier = new MibObjectIdentifier(oid);
+        identifier.setLine(lineNumber);
         
         currentModule.addDefinition(identifier);
         
@@ -247,6 +254,7 @@ public class MibParser {
 	 */
 	void parseObjectIdentity(LineNumberReader in, String first) throws IOException {
 		TokenArrayList tokens = commaClassifier.classify(first, false);
+		int lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= null;
@@ -273,6 +281,7 @@ public class MibParser {
         MibOID oid = new MibOID(pname, name, id);
         
         MibObjectIdenity identity = new MibObjectIdenity(oid);
+        identity.setLine(lineNumber);
         
         currentModule.addDefinition(identity);
         
@@ -305,6 +314,7 @@ public class MibParser {
 	 */
 	void parseObjectType(LineNumberReader in, String first) throws IOException {
 		TokenArrayList tokens = commaClassifier.classify(first, false);
+		int lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= null;
@@ -331,6 +341,7 @@ public class MibParser {
         MibOID oid = new MibOID(pname, name, id);
         
         MibObjectType objtype = new MibObjectType(oid);
+        objtype.setLine(lineNumber);
         
         currentModule.addDefinition(objtype);
         
@@ -340,6 +351,7 @@ public class MibParser {
 	
 	void parseNotificationType(LineNumberReader in, String first) throws IOException {
 		TokenArrayList tokens = commaClassifier.classify(first, false);
+		int lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= null;
@@ -366,6 +378,7 @@ public class MibParser {
         MibOID oid = new MibOID(pname, name, id);
         
         MibNotificationType notification = new MibNotificationType(oid);
+        notification.setLine(lineNumber);
         
         currentModule.addDefinition(notification);
         
@@ -381,6 +394,7 @@ public class MibParser {
 	 */
 	void parseModuleIdentity(LineNumberReader in, String first) throws IOException {
 		TokenArrayList tokens = commaClassifier.classify(first, false);
+		int lineNumber = in.getLineNumber();
 		
 		String 	name 			= tokens.nth(0).getValue();
 		String 	pname			= null;
@@ -407,6 +421,7 @@ public class MibParser {
         MibOID oid = new MibOID(pname, name, id);
         
         MibModuleIdentity mmi = new MibModuleIdentity(oid);
+        mmi.setLine(lineNumber);
         
         currentModule.addDefinition(mmi);
         
