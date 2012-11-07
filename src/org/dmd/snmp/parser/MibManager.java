@@ -41,8 +41,17 @@ public class MibManager {
 	}
 	
 	public boolean hasModule(String mn){
-		if (modules.get(mn) == null)
+		String fileName = mn.replace('\\', '/');
+		int lastSlash = fileName.lastIndexOf("/");
+		String moduleName = mn;
+		
+		if (lastSlash != -1){
+			moduleName = fileName.substring(lastSlash+1);
+		}
+		
+		if (modules.get(moduleName) == null)
 			return(false);
+		
 		return(true);
 	}
 	

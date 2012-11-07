@@ -3,8 +3,10 @@ package org.dmd.snmp.parser;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
@@ -54,6 +56,8 @@ public class MibParser {
 	MibManager	mibManager;
 	MibModule	currentModule;
 	
+	MibFinder	finder;
+	
 	public MibParser(){
 		classifier = new Classifier();
 		classifier.addKeyword(ASSIGNMENT_STR, ASSIGNMENT_ID);
@@ -62,26 +66,58 @@ public class MibParser {
 		commaClassifier.addKeyword(FROM_STR, FROM_ID);
 		commaClassifier.addSeparator(COMMA, COMMA_ID);
 		commaClassifier.addSeparator(SEMI_COLON, SEMI_COLON_ID);
+		
 	}
 	
-	public void parseMib(String fn) throws ResultException {
+	public void parseMib(String fn) throws ResultException, IOException {
 		mibManager = new MibManager();
 		
-		parseMibInternal(fn);
+		// Set up the finder that will find the location of base MIBs
+		finder = new MibFinder();
+		
+		finder.debug(true);
+		finder.addMibFolder("iana");
+		finder.addMibFolder("ietf");
+		finder.addJarPrefix("mibble-mibs");
+		
+		finder.findMIBs();
+		
+		MibLocation location = new MibLocation(fn);
+		
+		parseMibInternal(location);
 		
 		mibManager.resolveDefinitions();
 	}
 
-	public void parseMibInternal(String fn){
+	public void parseMibInternal(MibLocation loc) throws ResultException {
+		MibLocation location = loc;
 		
-		if (mibManager.hasModule(fn))
+		if (mibManager.hasModule(location.getMibName()))
 			return;
 		
-        LineNumberReader	in			= null;
+		if (!location.isFromJAR()){
+			// If this isn't from a JAR but the directory is null, it means that
+			// someone just specified the name of (hopefully) one of the base MIBs
+			// We'll try to find that MIB as a MibLocation from our finder
+			if (location.getDirectory() == null){
+				location = finder.getLocation(loc.getMibName());
+				
+				if (location == null)
+					throw(new ResultException("Couldn't find base MIB: " + loc.getMibName() + " in our MIB jar."));
+			}
+		}
+		
+        LineNumberReader	in	= null;
+        
         try {
-			in = new LineNumberReader(new FileReader(fn));
+        	if (location.isFromJAR()){
+    			InputStreamReader isr = new InputStreamReader(getClass().getResourceAsStream(location.getFileName()));
+    			in = new LineNumberReader(isr);        		
+        	}
+        	else
+        		in = new LineNumberReader(new FileReader(location.getFileName()));
 			
-			currentModule = new MibModule(fn);
+			currentModule = new MibModule(location.getMibName());
 			
 			mibManager.addModule(currentModule);
 			
@@ -123,6 +159,17 @@ public class MibParser {
                 	
                 }
             }
+            
+//    		// We've finished parsing this module, now ensure that its imports
+//    		// have been read as well.
+//            Iterator<MibImport> imports = currentModule.getImports();
+//            if (imports != null){
+//            	while(imports.hasNext()){
+//            		MibImport mi = imports.next();
+//            		
+//            	}
+//            }
+            
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -130,6 +177,7 @@ public class MibParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 		
 	/**

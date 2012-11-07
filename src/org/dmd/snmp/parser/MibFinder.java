@@ -20,33 +20,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.TreeMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.dmd.util.exceptions.ResultException;
 
 /**
- * The ConfigFinder utility recursively hunts through the source directories of the
- * current set of Eclipse projects your have on your build path, as well as any JAR 
- * files that end with a specific suffix (e.g. *DMSchema.jar) and finds configuration
- * files that end with a specific suffix e.g. .dms .dmg etc.
- * <P>
- * Add the suffixes you're looking for by calling addSuffix(). You must provide at
- * least one suffix, or the findConfigs() method will fail.
- * <P>
- * The ConfigFinder also understands the convention of versioning your configuration
- * files by storing them in subfolders named v<#>dot<#>. For instance, for a versioned
- * schema you might have schema/v0dot1, schema/v1dot23, schema/v11dot3dot1 which would
- * represent schemas at version 0.1, 1.23 and 11.3.1 respectively.
- * <P>
- * NOTE: as indicated, the finder assumes that you're working in an Eclipse environment
- * where you have a directory structure like: project/bin project/src. The finder will
- * see the project/bin on the java.class.path and then try to find the src directory in
- * the same location.
- * <P>
- * If your development environment doesn't conform to this arrangement, you can derive
- * your own class, or, manually specify the source directories to search by priming the
- * ConfigFinder with calls to addSourceDirectory().
+ * The MibFinder utility is used to gather the names/locations of base MIB files
+ * from a JAR or file system. MIB definitions are assumed to be gathered beneath
+ * particular folders and have no specified file extensions.
  */
 public class MibFinder {
 
@@ -63,12 +46,16 @@ public class MibFinder {
 	
 	// These are the class paths we searched
 	ArrayList<String>	classPaths;
+	
+	// Key: MIB name
+	// Value: its location
+	TreeMap<String, MibLocation>	locations;
 		
 	String fsep;
 	
-	// The preferences file we attempt to read
-	String 	prefName;
-	boolean	prefsAvailable;
+//	// The preferences file we attempt to read
+//	String 	prefName;
+//	boolean	prefsAvailable;
 	
 	// The length of the longest schema name we found
 	int	longest;
@@ -90,7 +77,7 @@ public class MibFinder {
 		while(srcdirs.hasNext()){
 			sourceDirs.add(srcdirs.next());
 		}
-		prefsAvailable = true;
+//		prefsAvailable = true;
 	}
 	
 	public void debug(boolean db){
@@ -110,16 +97,18 @@ public class MibFinder {
 		jarPrefixes		= new ArrayList<String>();
 		configs			= new ArrayList<MibLocation>();
 		fsep 			= File.separator;
-		prefsAvailable 	= false;
+//		prefsAvailable 	= false;
 		classPaths 		= new ArrayList<String>();
+		
+		locations = new TreeMap<String, MibLocation>();
 	}
 	
-	/**
-	 * @return The name of the file where additional source paths are indicated.
-	 */
-	public String getPrefName(){
-		return(prefName);
-	}
+//	/**
+//	 * @return The name of the file where additional source paths are indicated.
+//	 */
+//	public String getPrefName(){
+//		return(prefName);
+//	}
 	
 	/**
 	 * Adds a MIB folder to hunt for. Generally collections of MIBs are stored in particular folders.
@@ -191,19 +180,19 @@ public class MibFinder {
 	public String getSearchInfo(){
 		StringBuffer sb = new StringBuffer();
 		
-		if (prefName == null)
-			sb.append("Source directory preferences from -srcdir option:\n");
-		else
-			sb.append("Source directory preferences: " + prefName + "\n");
-		
-		if (prefsAvailable){
-			for(String f : sourceDirs){
-				sb.append("    " + f + "\n");
-			}
-		}
-		else
-			sb.append("No preferences specified");
-		sb.append("\n");
+//		if (prefName == null)
+//			sb.append("Source directory preferences from -srcdir option:\n");
+//		else
+//			sb.append("Source directory preferences: " + prefName + "\n");
+//		
+//		if (prefsAvailable){
+//			for(String f : sourceDirs){
+//				sb.append("    " + f + "\n");
+//			}
+//		}
+//		else
+//			sb.append("No preferences specified");
+//		sb.append("\n");
 		
 		sb.append("Checked the following locations on your class path:\n");
 		
@@ -294,8 +283,8 @@ public class MibFinder {
 						
 						addConfig(newLocation);
 						
-						if (newLocation.getConfigName().length() > longest)
-							longest = newLocation.getConfigName().length();
+						if (newLocation.getMibName().length() > longest)
+							longest = newLocation.getMibName().length();
 					}
 					else{
 						String fullname = dir.getAbsolutePath() + File.separator + f;
@@ -314,12 +303,12 @@ public class MibFinder {
 	}
 	
 	/**
-	 * Attempts to add the new location. If the version clashes with an existing version,
-	 * we pitch an exception.
-	 * @param cl The new location.
+	 * Attempts to add the new location. If a mib with the same name already exists,
+	 * we throw an exception.
+	 * @param mibloc The new location.
 	 * @throws ResultException
 	 */
-	void addConfig(MibLocation cl) throws ResultException {
+	void addConfig(MibLocation mibloc) throws ResultException {
 //		DebugInfo.debug("*** Adding config: " + cl.getConfigName());
 		
 //		ConfigVersion cv = versions.get(cl.getConfigName());
@@ -342,8 +331,26 @@ public class MibFinder {
 		
 		// Just add that puppy
 //		DebugInfo.debug("Found config\n\n" + cl.toString());
-		debugMessage("found possible MIB file: " + cl.toString());
-		configs.add(cl);
+		debugMessage("found possible MIB file: " + mibloc.toString());
+		configs.add(mibloc);
+		
+		MibLocation existing = locations.get(mibloc.getMibName());
+		if (existing != null){
+			// BIG HACK!!!!!
+			// For some reason, the mibble MIBs jar has the IANA-ITU-ALARM-TC-MIB in two locations,
+			// if this mib is that MIB, don't complain
+			if (mibloc.getMibName().equals("IANA-ITU-ALARM-TC-MIB"))
+				return;
+			
+			throw(new ResultException("Duplicate MIB names found: \n" + existing.toString() + "\n\n" + mibloc.toString()));
+		}
+		else{
+			locations.put(mibloc.getMibName(), mibloc);
+		}
+	}
+	
+	public MibLocation getLocation(String mibname){
+		return(locations.get(mibname));
 	}
 	
 //	/**
@@ -368,8 +375,6 @@ public class MibFinder {
 	 * @throws ResultException 
 	 */
 	void findMIBsOnClassPath() throws IOException, ResultException {
-		
-//		String[] paths = System.getProperty("java.class.path").split(";");
 		String[] paths = System.getProperty("java.class.path").split(File.pathSeparator);
 		
 		debugMessage("findConfigsOnClassPath()");
@@ -409,37 +414,23 @@ public class MibFinder {
 					            	// The jarEntry might appear as follows: /com/example/schema/example.dms
 					            	// AND NOTE THAT THE FILE SEPERATORS ARE FORWARD SLASHES, NOT SYSTEM DEPENDENT!!!
 					            	lastSlash = jarEntry.lastIndexOf("/");
-					            	String schemaName = jarEntry.substring(lastSlash+1);
+					            	String mibName = jarEntry.substring(lastSlash+1);
 					            	String path = jarEntry.substring(0,lastSlash);
+					            	
+					            	// If this is just the folder itself, not a file, continue
+					            	if (mibName.length() == 0)
+					            		continue;
 				            		
 									debugMessage("    jarEntry contains MIB folder name: " + folder + "  -  " + jarEntry);
 									
-						            MibLocation newLocation = new MibLocation(f, schemaName, path);
+						            MibLocation newLocation = new MibLocation(f, mibName, path);
 									
 									addConfig(newLocation);
 									
-									if (newLocation.getConfigName().length() > longest)
-										longest = newLocation.getConfigName().length();
+									if (newLocation.getMibName().length() > longest)
+										longest = newLocation.getMibName().length();
 				            	}
 				            	
-//					            if (jarEntry.endsWith(folder)){
-//					            	// The jarEntry might appear as follows: /com/example/schema/example.dms
-//					            	// AND NOTE THAT THE FILE SEPERATORS ARE FORWARD SLASHES, NOT SYSTEM DEPENDENT!!!
-//					            	lastSlash = jarEntry.lastIndexOf("/");
-//					            	String schemaName = jarEntry.substring(lastSlash+1);
-//					            	String path = jarEntry.substring(0,lastSlash);
-//					            	
-//									debugMessage("    jarEntry ends with suffix " + jarEntry);
-////									DebugInfo.debug(f);
-////						            DebugInfo.debug(jarEntry);
-//
-//						            MibLocation newLocation = new MibLocation(f, schemaName, path, folder);
-//									
-//									addConfig(newLocation);
-//									
-//									if (newLocation.getConfigName().length() > longest)
-//										longest = newLocation.getConfigName().length();
-//					            }
 				            }
 				        }
 					}

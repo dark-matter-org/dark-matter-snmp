@@ -41,6 +41,10 @@ public class MibModule {
 		return(definitions.values().iterator());
 	}
 	
+	public Iterator<MibImport> getImports(){
+		return(imports.values().iterator());
+	}
+	
 	/**
 	 * Adds the definition to this module and sets this module as the source of
 	 * the definition.
