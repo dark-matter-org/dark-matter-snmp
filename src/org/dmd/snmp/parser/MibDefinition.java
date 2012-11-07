@@ -13,6 +13,9 @@ abstract public class MibDefinition {
 	// The module where this definition came from
 	MibModule	module;
 	
+	// The line in the module from which this definition was read
+	Integer		line;
+	
 //	protected MibDefinition(){
 //		dname = null;
 //	}
@@ -31,6 +34,20 @@ abstract public class MibDefinition {
 		if (module != null)
 			throw(new IllegalStateException("The module associated with a MibDefinition should only be set once!"));
 		module = mm;
+	}
+	
+	public void setLine(int l){
+		if (line != null)
+			throw(new IllegalStateException("The line number associated with a MibDefinition should only be set once!"));
+		line = l;
+	}
+	
+	public int getLine(){
+		return(line);
+	}
+	
+	public MibDefinitionName getDefinitionName(){
+		return(dname);
 	}
 	
 	abstract public String getDefinitionTypeName();

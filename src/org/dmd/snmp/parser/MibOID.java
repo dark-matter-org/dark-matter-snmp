@@ -6,11 +6,13 @@ package org.dmd.snmp.parser;
  */
 public class MibOID extends MibDefinitionName {
 	
-	public static int 		isoID = 1;
-	public static String 	isoName = "iso";
+	public final static int 	isoID 	= 1;
+	public final static String 	isoName = "iso";
 
 	// The string name of the parent OID
 	String 					parentName;
+	
+	// The parent's OID - this will only be set if we've resolved it via the MibManager
 	MibOID					parentOID;
 	
 	// The ID at this level
@@ -29,6 +31,19 @@ public class MibOID extends MibDefinitionName {
 		parentOID	= null;
 		id			= isoID;
 		fullID		= "" + isoID;
+	}
+	
+	/**
+	 * Constructs the NULL OID.
+	 * @param n
+	 * @param i
+	 */
+	public MibOID(int i){
+		super("0");
+		parentName	= null;
+		parentOID	= null;
+		id			= i;
+		fullID		= "" + id;
 	}
 	
 	public MibOID(String p, String n, int i){
@@ -56,11 +71,25 @@ public class MibOID extends MibDefinitionName {
 		return(sb.toString());
 	}
 	
+	public MibOID getParentOID(){
+		return(parentOID);
+	}
+	
+	public void setParentOID(MibOID p){
+		if (parentOID != null)
+			throw(new IllegalStateException("The parent OID of a MibOID can only be set once!"));
+		parentOID = p;
+	}
+	
 	/**
 	 * @return the name of definition represented by this object identifier.
 	 */
 	public String getName(){
 		return(name);
+	}
+	
+	public String getParentName(){
+		return(parentName);
 	}
 	
 	
