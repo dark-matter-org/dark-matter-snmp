@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
@@ -56,6 +57,12 @@ public class MibParser {
 	MibModule	currentModule;
 	
 	MibFinder	finder;
+	
+	// The line currently being processed - see getNextLine()
+	String		currentLine;
+	
+	// The previous read from the file - see getNextLine()
+	String		previousLine;
 	
 	public MibParser(){
 		classifier = new Classifier();
@@ -115,6 +122,12 @@ public class MibParser {
         	}
         	else
         		in = new LineNumberReader(new FileReader(location.getFileName()));
+        	
+        	// See getNextLine()
+        	currentLine = null;
+        	previousLine = null;
+        	
+        	DebugInfo.debug("\n\n" + "Parsing: " + location.getFileName());
 			
 			currentModule = new MibModule(location.getMibName());
 			
@@ -123,7 +136,7 @@ public class MibParser {
             String rawInput;
             while ((rawInput = in.readLine()) != null) {
             	String line = preProcessLine(rawInput);
-        		System.out.println(rawInput);
+//        		System.out.println(rawInput);
             	
             	if (line.length() == 0){
 //            		System.out.println("Skipping: " + rawInput);
@@ -159,15 +172,24 @@ public class MibParser {
                 }
             }
             
-//    		// We've finished parsing this module, now ensure that its imports
-//    		// have been read as well.
-//            Iterator<MibImport> imports = currentModule.getImports();
-//            if (imports != null){
-//            	while(imports.hasNext()){
-//            		MibImport mi = imports.next();
-//            		
-//            	}
-//            }
+            in.close();
+            
+    		// We've finished parsing this module, now ensure that its imports
+    		// have been read as well.
+            Iterator<MibImport> imports = currentModule.getImports();
+            if (imports != null){
+            	while(imports.hasNext()){
+            		MibImport mi = imports.next();
+            		
+            		if (!mibManager.hasModule(mi.getMibName())){
+            			MibLocation mibloc = finder.getLocation(mi.getMibName());
+            			if (mibloc == null)
+            				throw(new ResultException("Couldn't find " + mi.getMibName() + " imported by " + currentModule.getName()));
+            			parseMibInternal(mibloc);
+            		}
+            		
+            	}
+            }
             
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -277,10 +299,19 @@ public class MibParser {
 	void parseObjectIdentifier(LineNumberReader in, String line){
 		TokenArrayList tokens = commaClassifier.classify(line, false);
 		int lineNumber = in.getLineNumber();
+		int id			= -1;
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= tokens.nth(5).getValue();
-		int		id 		= Integer.parseInt(tokens.nth(6).getValue());
+		
+		try{
+			id 		= Integer.parseInt(tokens.nth(6).getValue());
+		}
+		catch(NumberFormatException ex){
+			DebugInfo.debug("Error parsing OBJECT IDENTIFIER in file: " + currentModule.getName() + " line:" + in.getLineNumber());
+			
+			throw(ex);
+		}
 		        
         MibOID oid = new MibOID(pname, name, id);
         
@@ -376,11 +407,17 @@ public class MibParser {
         	
         	// We're looking for something like:
         	// ::= { parentName 2 }
-        	if (line.contains(ASSIGNMENT_STR)){
+        	if (line.startsWith(ASSIGNMENT_STR)){
         		tokens 	= commaClassifier.classify(line, false);
 //        		DebugInfo.debug("TOKENS:\n " + tokens);
         		pname 	= tokens.nth(2).getValue();
-        		id		= Integer.parseInt(tokens.nth(3).getValue());
+        		try{
+        			id		= Integer.parseInt(tokens.nth(3).getValue());
+        		}
+        		catch(NumberFormatException ex){
+        			DebugInfo.debug("Error parsing OBJECT-TYPE in file: " + currentModule.getName() + " line:" + in.getLineNumber());
+        			throw(ex);
+        		}
         		haveAssignment = true;
         	}
         }
@@ -489,4 +526,14 @@ public class MibParser {
 		return(rc.trim());
 	}
 	
+	String getNextLine(LineNumberReader in) throws IOException {
+        String	rawInput = in.readLine();
+        if (rawInput == null)
+        	return(null);
+        
+        previousLine = currentLine;
+        currentLine = preProcessLine(rawInput);
+        
+        return(currentLine);
+	}
 }
