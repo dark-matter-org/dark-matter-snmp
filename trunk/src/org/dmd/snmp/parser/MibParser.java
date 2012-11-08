@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
@@ -75,7 +74,7 @@ public class MibParser {
 		// Set up the finder that will find the location of base MIBs
 		finder = new MibFinder();
 		
-		finder.debug(true);
+//		finder.debug(true);
 		finder.addMibFolder("iana");
 		finder.addMibFolder("ietf");
 		finder.addJarPrefix("mibble-mibs");
