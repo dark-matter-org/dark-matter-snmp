@@ -31,9 +31,9 @@ public class MibParserTest {
 		
 //		parser.parseMib(rundir + "/mibs/ALARM-MIB");
 		
-		parser.parseMib(rundir + "/mibs/BELAIR-NBI");
+//		parser.parseMib(rundir + "/mibs/BELAIR-NBI");
 		
-//		parser.parseMib(rundir + "/mibs/SNMPv2-SMI");
+		parser.parseMib(rundir + "/mibs/DOCS-IF-MIB");
 	}
 	
 //	@Test

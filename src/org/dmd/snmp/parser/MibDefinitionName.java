@@ -38,6 +38,10 @@ public class MibDefinitionName {
 		definition = mb;
 	}
 	
+	public MibDefinition getDefinition(){
+		return(definition);
+	}
+	
 	public String toString(){
 		if (definition == null)
 			return("Definition: " + name);
