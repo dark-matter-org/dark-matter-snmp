@@ -3,6 +3,7 @@ package org.dmd.snmp.parser;
 import java.io.File;
 import java.io.IOException;
 
+import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,16 +27,18 @@ public class MibParserTest {
 		
 		MibParser parser = new MibParser();
 		
-//		parser.parseMib(rundir + "/mibs/ALARM-MIB");
+		parser.parseMib(rundir + "/mibs/ALARM-MIB");
 		
 //		parser.parseMib(rundir + "/mibs/BELAIR-SYSTEM");
 		
-		parser.parseMib(rundir + "/mibs/SNMPv2-SMI");
+//		parser.parseMib(rundir + "/mibs/SNMPv2-SMI");
 	}
 	
 	@Test
 	public void parse2() throws ResultException, IOException{
 		// Parse a standard MIB from the jar
+		
+		DebugInfo.debug("UNIT TEST - Parse a MIB from JAR");
 		
 		MibParser parser = new MibParser();
 		parser.parseMib("SNMPv2-SMI");
