@@ -3,6 +3,7 @@ package org.dmd.snmp.parser;
 import java.util.Iterator;
 import java.util.TreeMap;
 
+import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
 
 /**
@@ -96,8 +97,10 @@ public class MibManager {
 			
 			MibOID parent = oids.get(oid.getParentName());
 			
-			if (parent == null)
-				throw(new ResultException("Couldn't find parent: " + oid.getParentName() + " for OID: " + oid.getName()));
+			if (parent == null){
+				DebugInfo.debug("Couldn't find parent for OID: " + oid.toString());
+//				throw(new ResultException("Couldn't find parent for OID: " + oid.toString()));
+			}
 			
 			oid.setParentOID(parent);
 		}

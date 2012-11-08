@@ -25,22 +25,35 @@ public class MibParserTest {
 	public void parse1() throws ResultException, IOException {
 		// Parse a MIB based on specification of a file location
 		
+		DebugInfo.debug("\n\nUNIT TEST - Parse a complete MIB including imports");
+
 		MibParser parser = new MibParser();
 		
-		parser.parseMib(rundir + "/mibs/ALARM-MIB");
+//		parser.parseMib(rundir + "/mibs/ALARM-MIB");
 		
-//		parser.parseMib(rundir + "/mibs/BELAIR-SYSTEM");
+		parser.parseMib(rundir + "/mibs/BELAIR-NBI");
 		
 //		parser.parseMib(rundir + "/mibs/SNMPv2-SMI");
 	}
 	
-	@Test
-	public void parse2() throws ResultException, IOException{
-		// Parse a standard MIB from the jar
-		
-		DebugInfo.debug("UNIT TEST - Parse a MIB from JAR");
-		
-		MibParser parser = new MibParser();
-		parser.parseMib("SNMPv2-SMI");
-	}
+//	@Test
+//	public void parse2() throws ResultException, IOException{
+//		// Parse a standard MIB from the jar
+//		
+//		DebugInfo.debug("\n\nUNIT TEST - Parse a MIB from JAR");
+//		
+//		MibParser parser = new MibParser();
+//		parser.parseMib("SNMPv2-SMI");
+//	}
+//	
+//	@Test
+//	public void parse3() throws ResultException, IOException{
+//		DebugInfo.debug("\n\nUNIT TEST - Parse a MIB but not its imports");
+//
+//		MibParser parser = new MibParser();
+////		parser.parseImports(false);
+//		
+//		parser.parseMib("RMON2-MIB");
+//		
+//	}
 }

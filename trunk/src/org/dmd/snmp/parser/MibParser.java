@@ -31,6 +31,12 @@ public class MibParser {
 	final static String SEMI_COLON	= ";";
 	final static int SEMI_COLON_ID = Token.CUSTOM + 4;
 	
+	final static String LEFT_CURLY	= "{";
+	final static int LEFT_CURLY_ID = Token.CUSTOM + 5;
+	
+	final static String RIGHT_CURLY	= "}";
+	final static int RIGHT_CURLY_ID = Token.CUSTOM + 6;
+	
 	final static String OBJECT_IDENTIFIER_STR = "OBJECT IDENTIFIER";
 	
 	final static String MODULE_IDENTITY_STR = "MODULE-IDENTITY";
@@ -53,6 +59,8 @@ public class MibParser {
 	
 	Classifier	commaClassifier;
 	
+	Classifier	curlyClassifier;
+	
 	MibManager	mibManager;
 	MibModule	currentModule;
 	
@@ -64,6 +72,11 @@ public class MibParser {
 	// The previous read from the file - see getNextLine()
 	String		previousLine;
 	
+	boolean		parseImports;
+	
+	// The MibLocation that started a particular parsing run
+	MibLocation	startLocation;
+	
 	public MibParser(){
 		classifier = new Classifier();
 		classifier.addKeyword(ASSIGNMENT_STR, ASSIGNMENT_ID);
@@ -73,6 +86,20 @@ public class MibParser {
 		commaClassifier.addSeparator(COMMA, COMMA_ID);
 		commaClassifier.addSeparator(SEMI_COLON, SEMI_COLON_ID);
 		
+		curlyClassifier = new Classifier();
+		curlyClassifier.addSeparator(LEFT_CURLY, LEFT_CURLY_ID);
+		curlyClassifier.addSeparator(RIGHT_CURLY, RIGHT_CURLY_ID);
+		
+		parseImports = true;
+	}
+	
+	/**
+	 * Allows you to control whether or not parse the entire import chain or just
+	 * the single file taht you specify in parseMib().
+	 * @param f
+	 */
+	public void parseImports(boolean f){
+		parseImports = f;
 	}
 	
 	public void parseMib(String fn) throws ResultException, IOException {
@@ -88,11 +115,13 @@ public class MibParser {
 		
 		finder.findMIBs();
 		
-		MibLocation location = new MibLocation(fn);
+		startLocation = new MibLocation(fn);
 		
-		parseMibInternal(location);
+		parseMibInternal(startLocation);
 		
-		mibManager.resolveDefinitions();
+		// We only try to resolve the OID structure if we've parsed everything
+		if (parseImports)
+			mibManager.resolveDefinitions();
 	}
 
 	public void parseMibInternal(MibLocation loc) throws ResultException {
@@ -133,9 +162,10 @@ public class MibParser {
 			
 			mibManager.addModule(currentModule);
 			
-            String rawInput;
-            while ((rawInput = in.readLine()) != null) {
-            	String line = preProcessLine(rawInput);
+            String line;
+//            while ((rawInput = in.readLine()) != null) {
+            while ( (line = getNextLine(in)) != null) {
+//            	String line = preProcessLine(rawInput);
 //        		System.out.println(rawInput);
             	
             	if (line.length() == 0){
@@ -174,6 +204,9 @@ public class MibParser {
             
             in.close();
             
+            if (!parseImports)
+            	return;
+            
     		// We've finished parsing this module, now ensure that its imports
     		// have been read as well.
             Iterator<MibImport> imports = currentModule.getImports();
@@ -183,8 +216,14 @@ public class MibParser {
             		
             		if (!mibManager.hasModule(mi.getMibName())){
             			MibLocation mibloc = finder.getLocation(mi.getMibName());
-            			if (mibloc == null)
-            				throw(new ResultException("Couldn't find " + mi.getMibName() + " imported by " + currentModule.getName()));
+            			if (mibloc == null){
+            				
+            				// try to find a local MIB import i.e. in the same folder where we started
+            				mibloc = finder.findLocal(startLocation, mi.getMibName());
+            				
+            				if (mibloc == null)
+            					throw(new ResultException("Couldn't find " + mi.getMibName() + " imported by " + currentModule.getName()));
+            			}
             			parseMibInternal(mibloc);
             		}
             		
@@ -198,23 +237,34 @@ public class MibParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		catch(Exception ex){
+			DebugInfo.debug(ex.toString());
+			DebugInfo.debug("While processing file: " + currentModule.getName() + " line: " + in.getLineNumber() + " content: "+ currentLine);
+//			throw(ex);
+		}
 		
 	}
 		
 	/**
 	 * Called when we encounter the IMPORTS string and parses until we hit a blank line.
 	 * Note: we expect that the IMPORTS statement is on a line by itself.
+	 * <p/>
+	 * There are some screwed up imports, for example the RMON2-MIB where there are blank
+	 * lines separating the import symbols from the FROM statement. We look for the ending
+	 * semicolon to signal the end of the IMPORTS.
 	 * @param in the reader.
 	 * @param str the line where we encountered the IMPORTS statement.
 	 * @throws IOException  
 	 */
 	void parseImports(LineNumberReader in) throws IOException {
-        String				rawInput;
+        String				line;
         ArrayList<String>	symbols = new ArrayList<String>();
+        boolean 			haveEndingSemicolon	= false;
         
-        while ((rawInput = in.readLine()) != null) {
-        	String line = preProcessLine(rawInput);
-        	if (line.length() == 0)
+//        while ((rawInput = in.readLine()) != null) {
+        while ((line = getNextLine(in)) != null) {
+//        	String line = preProcessLine(rawInput);
+        	if ( (line.length() == 0) && (haveEndingSemicolon))
         		break;
         	
         	TokenArrayList syms = commaClassifier.classify(line, false);
@@ -231,6 +281,9 @@ public class MibParser {
         		else
         			symbols.add(syms.nth(i).getValue());
         	}
+        	
+        	if (line.contains(SEMI_COLON))
+        		haveEndingSemicolon = true;
         }
         
 	}
@@ -274,9 +327,9 @@ public class MibParser {
 		
 		String 	name 	= tokens.nth(0).getValue();
 		
-        String				rawInput;
-        while ((rawInput = in.readLine()) != null) {
-        	if (rawInput.contains(END_STR))
+        String				line;
+        while ((line = getNextLine(in)) != null) {
+        	if (line.contains(END_STR))
         		break;
         }
         
@@ -293,26 +346,54 @@ public class MibParser {
 	
 	/**
 	 * Parses lines with OBJECT IDENTIFIER of the form:
+	 * 
 	 * alarmObjects OBJECT IDENTIFIER ::= { alarmMIB 1 }
+	 * 
+	 * OR
+	 *
+	 * snmpMIBConformance
+	 *                        OBJECT IDENTIFIER ::= { snmpMIB 2 }
+	 *                        
 	 * @param in
 	 */
 	void parseObjectIdentifier(LineNumberReader in, String line){
-		TokenArrayList tokens = commaClassifier.classify(line, false);
-		int lineNumber = in.getLineNumber();
-		int id			= -1;
+		TokenArrayList 	tokens 		= curlyClassifier.classify(line, true);
+		int 			lineNumber 	= in.getLineNumber();
+		int 			id			= -1;
+		String 			name		= null;
+		String 			pname		= null;
+		String			idStr		= null;
 		
-		String 	name 	= tokens.nth(0).getValue();
-		String 	pname	= tokens.nth(5).getValue();
+//		DebugInfo.debug("\n" + tokens.toString());
+		
+		// Not all OBJECT IDENTIFER definitions are contained on a single line, the SNMPv2-MIB
+		// has definitions like:
+		//
+		// snmpMIBConformance
+        //                         OBJECT IDENTIFIER ::= { snmpMIB 2 }
+		// 
+		// So, we have to be prepared to look back to the previous line to get the name
+		// of the object identifier.
+		
+		if (line.startsWith(OBJECT_IDENTIFIER_STR)){
+			name 	= previousLine;
+			pname 	= tokens.nth(4).getValue();
+			idStr	= tokens.nth(5).getValue();
+		}
+		else{
+			name 	= tokens.nth(0).getValue();
+			pname	= tokens.nth(5).getValue();
+			idStr	= tokens.nth(6).getValue();
+		}
 		
 		try{
-			id 		= Integer.parseInt(tokens.nth(6).getValue());
+			id 		= Integer.parseInt(idStr);
 		}
 		catch(NumberFormatException ex){
 			DebugInfo.debug("Error parsing OBJECT IDENTIFIER in file: " + currentModule.getName() + " line:" + in.getLineNumber());
-			
 			throw(ex);
 		}
-		        
+
         MibOID oid = new MibOID(pname, name, id);
         
         MibObjectIdentifier identifier = new MibObjectIdentifier(oid);
@@ -339,9 +420,9 @@ public class MibParser {
 		int		id 		= -1;
 		boolean	haveAssignment 	= false;
 		
-        String				rawInput;
-        while ((rawInput = in.readLine()) != null) {
-        	String line = preProcessLine(rawInput);
+        String line;
+        while ((line = getNextLine(in)) != null) {
+//        	String line = preProcessLine(rawInput);
         	if ( (line.length() == 0) && haveAssignment)
         		break;
         	
@@ -391,7 +472,7 @@ public class MibParser {
 	 * @throws IOException  
 	 */
 	void parseObjectType(LineNumberReader in, String first) throws IOException {
-		TokenArrayList tokens = commaClassifier.classify(first, false);
+		TokenArrayList tokens = curlyClassifier.classify(first, true);
 		int lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
@@ -399,16 +480,16 @@ public class MibParser {
 		int		id 		= -1;
 		boolean	haveAssignment 	= false;
 		
-        String				rawInput;
-        while ((rawInput = in.readLine()) != null) {
-        	String line = preProcessLine(rawInput);
+        String line;
+        while ((line = getNextLine(in)) != null) {
+//        	String line = preProcessLine(rawInput);
         	if ( (line.length() == 0) && haveAssignment)
         		break;
         	
         	// We're looking for something like:
         	// ::= { parentName 2 }
         	if (line.startsWith(ASSIGNMENT_STR)){
-        		tokens 	= commaClassifier.classify(line, false);
+        		tokens 	= curlyClassifier.classify(line, true);
 //        		DebugInfo.debug("TOKENS:\n " + tokens);
         		pname 	= tokens.nth(2).getValue();
         		try{
@@ -442,9 +523,9 @@ public class MibParser {
 		int		id 		= -1;
 		boolean	haveAssignment 	= false;
 		
-        String				rawInput;
-        while ((rawInput = in.readLine()) != null) {
-        	String line = preProcessLine(rawInput);
+        String line;
+        while ((line = getNextLine(in)) != null) {
+//        	String line = preProcessLine(rawInput);
         	if ( (line.length() == 0) && haveAssignment)
         		break;
         	
@@ -485,9 +566,9 @@ public class MibParser {
 		int		id 				= -1;
 		boolean	haveAssignment 	= false;
 		
-        String				rawInput;
-        while ((rawInput = in.readLine()) != null) {
-        	String line = preProcessLine(rawInput);
+        String	line;
+        while ((line = getNextLine(in)) != null) {
+//        	String line = preProcessLine(rawInput);
         	if ( (line.length() == 0) && haveAssignment)
         		break;
         	

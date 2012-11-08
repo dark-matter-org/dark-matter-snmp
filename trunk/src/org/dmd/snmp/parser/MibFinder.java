@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
 
 /**
@@ -455,5 +456,34 @@ public class MibFinder {
 			
 		}
 		
+	}
+	
+	/**
+	 * This method will create a MibLocation for another MIB file in the same location
+	 * as the start location. This allows for easy import of MIB files that are 
+	 * co-located in the same folder.
+	 * <p/>
+	 * This is not intended for use with MIB in JARs; you should use the normal
+	 * finding mechanisms to access jarred MIBs.
+	 * @param startLocation 
+	 * @param mibName
+	 * @return
+	 */
+	public MibLocation findLocal(MibLocation startLocation, String mibName){
+		MibLocation rc = null;
+		
+		if (startLocation.isFromJAR())
+			throw(new IllegalStateException("Can't use findLocal() for jarred MIBs!"));
+		
+		String fn = startLocation.getDirectory() + "/" + mibName;
+		File f = new File(fn);
+		if (f.exists()){
+			rc = new MibLocation(fn);
+		}
+		else{
+			DebugInfo.debug("Couldn't find local import MIB: " + fn);
+		}
+		
+		return(rc);
 	}
 }

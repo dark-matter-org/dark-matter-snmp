@@ -62,11 +62,12 @@ public class MibOID extends MibDefinitionName {
 			def = definition.getDefinitionTypeName();
 		
 		if (fullID == null){
-			sb.append(def + ": " + name + "(" + id + ")" + "   Parent: " + parentName);
+			sb.append(def + ": " + name + "(" + id + ")" + " defined in: " + definition.getModule().getName() + "   Parent: " + parentName);
 		}
 		else{
-			sb.append(def + ": " + name + "(" + fullID + ")" + "   Parent: " + parentName);
+			sb.append(def + ": " + name + "(" + fullID + ")" + " defined in: " + definition.getModule().getName() + "   Parent: " + parentName);
 		}
+		
 		
 		return(sb.toString());
 	}
