@@ -102,8 +102,12 @@ public class MibManager {
 		
 		System.out.println("\n\n");
 		
-		for(MibOID oid: oidsByName.values())
-			System.out.println(oid.getFullStringID());
+		for(MibOID oid: oidsByName.values()){
+			if (oid.getDefinition() == null)
+				System.out.println(oid.getFullStringID() );
+			else
+				System.out.println(oid.getFullStringID() + "  from: " + oid.getDefinition().getModule().getName());
+		}
 		
 		System.out.println("\n\n");
 		
