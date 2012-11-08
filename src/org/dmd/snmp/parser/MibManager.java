@@ -19,12 +19,20 @@ public class MibManager {
 	
 	TreeMap<String,MibOID>		oids;
 	
+	TreeMap<String,MibOID>		oidsByNumber;
+	
+	TreeMap<String,MibOID>		oidsByName;
+	
 	TreeMap<String,MibModule>	modules;
 	
 	public MibManager(){
 		oids 	= new TreeMap<String, MibOID>();
 		oids.put(isoOID.getName(), isoOID);
 		oids.put(nullOID.getName(), nullOID);
+		
+		oidsByNumber 	= new TreeMap<String, MibOID>();
+		
+		oidsByName 	= new TreeMap<String, MibOID>();
 		
 		modules = new TreeMap<String, MibModule>();
 	}
@@ -84,6 +92,25 @@ public class MibManager {
 		
 		if (rc != null)
 			throw(rc);
+		
+		for(MibOID oid: oids.values()){
+			System.out.println(oid.toString() + "\n" + oid.getFullStringID() + "\n");
+			
+			oidsByName.put(oid.getFullStringID(), oid);
+			oidsByNumber.put(oid.getFullID(), oid);
+		}
+		
+		System.out.println("\n\n");
+		
+		for(MibOID oid: oidsByName.values())
+			System.out.println(oid.getFullStringID());
+		
+		System.out.println("\n\n");
+		
+		for(MibOID oid: oidsByNumber.values())
+			System.out.println(oid.getFullID());
+		
+		
 	}
 	
 	void resolveOID(MibOID oid) throws ResultException{

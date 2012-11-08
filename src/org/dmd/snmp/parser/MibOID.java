@@ -22,15 +22,20 @@ public class MibOID extends MibDefinitionName {
 	// if this identifier has been resolved.
 	String 					fullID;
 	
+	// The entire OID string of dot separated strings. This is only available
+	// if this identifier has been resolved.
+	String					fullStringID;
+	
 	/**
 	 * Constructs the root ISO OID.
 	 */
 	public MibOID(){
 		super(isoName);
-		parentName	= null;
-		parentOID	= null;
-		id			= isoID;
-		fullID		= "" + isoID;
+		parentName		= null;
+		parentOID		= null;
+		id				= isoID;
+		fullID			= "" + isoID;
+		fullStringID	= "iso";
 	}
 	
 	/**
@@ -40,10 +45,11 @@ public class MibOID extends MibDefinitionName {
 	 */
 	public MibOID(int i){
 		super("0");
-		parentName	= null;
-		parentOID	= null;
-		id			= i;
-		fullID		= "" + id;
+		parentName		= null;
+		parentOID		= null;
+		id				= i;
+		fullID			= "" + id;
+		fullStringID	= "0";
 	}
 	
 	public MibOID(String p, String n, int i){
@@ -61,11 +67,16 @@ public class MibOID extends MibDefinitionName {
 		if (definition != null)
 			def = definition.getDefinitionTypeName();
 		
+		String moduleName = "META";
+		
+		if (definition != null)
+			moduleName = definition.getModule().getName();
+		
 		if (fullID == null){
-			sb.append(def + ": " + name + "(" + id + ")" + " defined in: " + definition.getModule().getName() + "   Parent: " + parentName);
+			sb.append(def + ": " + name + "(" + id + ")" + " defined in: " + moduleName + "   Parent: " + parentName);
 		}
 		else{
-			sb.append(def + ": " + name + "(" + fullID + ")" + " defined in: " + definition.getModule().getName() + "   Parent: " + parentName);
+			sb.append(def + ": " + name + "(" + fullID + ")" + " defined in: " + moduleName + "   Parent: " + parentName);
 		}
 		
 		
@@ -93,5 +104,24 @@ public class MibOID extends MibDefinitionName {
 		return(parentName);
 	}
 	
+	public String getFullID(){
+		if (fullID == null){
+			if (parentOID == null)
+				fullID = "" + id;
+			else
+				fullID = parentOID.getFullID() + "." + id;
+		}
+		return(fullID);
+	}
+	
+	public String getFullStringID(){
+		if (fullStringID == null){
+			if (parentOID == null)
+				fullStringID = "" + name;
+			else
+				fullStringID = parentOID.getFullStringID() + "." + name;
+		}
+		return(fullStringID);
+	}
 	
 }
