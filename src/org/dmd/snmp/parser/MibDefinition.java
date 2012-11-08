@@ -36,6 +36,13 @@ abstract public class MibDefinition {
 		module = mm;
 	}
 	
+	/**
+	 * @return the module where this definition originated.
+	 */
+	public MibModule getModule(){
+		return(module);
+	}
+	
 	public void setLine(int l){
 		if (line != null)
 			throw(new IllegalStateException("The line number associated with a MibDefinition should only be set once!"));
