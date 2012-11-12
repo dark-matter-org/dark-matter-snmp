@@ -37,6 +37,12 @@ public class MibParser {
 	final static String RIGHT_CURLY	= "}";
 	final static int RIGHT_CURLY_ID = Token.CUSTOM + 6;
 	
+	final static String LEFT_ROUND	= "(";
+	final static int LEFT_ROUND_ID = Token.CUSTOM + 7;
+	
+	final static String RIGHT_ROUND	= ")";
+	final static int RIGHT_ROUND_ID = Token.CUSTOM + 8;
+	
 	final static String OBJECT_IDENTIFIER_STR = "OBJECT IDENTIFIER";
 	
 	final static String MODULE_IDENTITY_STR = "MODULE-IDENTITY";
@@ -45,11 +51,15 @@ public class MibParser {
 	
 	final static String OBJECT_TYPE_STR = "OBJECT-TYPE";
 	
+	final static String TEXTUAL_CONVENTION_STR = "TEXTUAL-CONVENTION";
+	
 	final static String MACRO_STR = "MACRO";
 	
 	final static String END_STR = "END";
 	
 	final static String SEQUENCE_STR = "SEQUENCE";
+	
+	final static String SYNTAX_STR = "SYNTAX";
 	
 	final static String NOTIFICATION_TYPE_STR = "NOTIFICATION-TYPE";
 	
@@ -60,6 +70,8 @@ public class MibParser {
 	Classifier	commaClassifier;
 	
 	Classifier	curlyClassifier;
+	
+	Classifier	syntaxClassifier;
 	
 	MibManager	mibManager;
 	MibModule	currentModule;
@@ -89,6 +101,11 @@ public class MibParser {
 		curlyClassifier = new Classifier();
 		curlyClassifier.addSeparator(LEFT_CURLY, LEFT_CURLY_ID);
 		curlyClassifier.addSeparator(RIGHT_CURLY, RIGHT_CURLY_ID);
+		
+		syntaxClassifier = new Classifier();
+		syntaxClassifier.addSeparator(LEFT_ROUND, LEFT_ROUND_ID);
+		syntaxClassifier.addSeparator(RIGHT_ROUND, RIGHT_ROUND_ID);
+		syntaxClassifier.addSeparator(COMMA, COMMA_ID);
 		
 		parseImports = true;
 	}
@@ -196,6 +213,9 @@ public class MibParser {
             	}
                 else if (line.contains(IMPORTS_STR)){
                 	parseImports(in);
+                }
+                else if (line.contains(TEXTUAL_CONVENTION_STR)){
+                	parseTextualConvention(in, line);
                 }
                 else if (line.contains(ASSIGNMENT_STR)){
                 	
@@ -591,6 +611,129 @@ public class MibParser {
         currentModule.addDefinition(mmi);
         
         DebugInfo.debug(oid.toString());
+		
+	}
+	
+	/**
+	 * Parses TEXTUAL-CONVENTION sections
+	 * MacAddress ::= TEXTUAL-CONVENTION
+	 *     DISPLAY-HINT "1x:"
+	 *     STATUS       current
+	 *     DESCRIPTION
+	 *             "Represents an 802 MAC address represented in the
+	 *             `canonical' order defined by IEEE 802.1a, i.e., as if it
+	 *             were transmitted least significant bit first, even though
+	 *             802.5 (in contrast to other 802.x protocols) requires MAC
+	 *             addresses to be transmitted most significant bit first."
+	 *     SYNTAX       OCTET STRING (SIZE (6))
+	 * 
+	 * @param in the input file reader
+	 * @param first the first line of identity definition
+	 * @throws IOException  
+	 */
+	void parseTextualConvention(LineNumberReader in, String first) throws IOException {
+		TokenArrayList tokens = commaClassifier.classify(first, false);
+		
+		if (tokens.size() != 3){
+			DebugInfo.debug("TEXTUAL-CONVENTION - not enough tokens: " + first);
+			return;
+		}
+		
+		if (!tokens.nth(1).getValue().equals(ASSIGNMENT_STR)){
+			DebugInfo.debug("Missing assignment operator in TEXTUAL-CONVENTION: " + first);
+			return;
+		}
+		
+		DebugInfo.debug("Parsing TEXTUAL-CONVENTION: " + tokens.nth(0).getValue());
+		
+		MibDefinitionName		mdn = new MibDefinitionName(tokens.nth(0).getValue());
+		MibTextualConvention 	mtc = new MibTextualConvention(mdn);
+		mtc.setLine(in.getLineNumber());
+		
+        String line;
+        while ((line = getNextLine(in)) != null) {
+    		if (line.contains(SYNTAX_STR)){
+    			parseSyntax(in,line,mtc);
+    			break;
+    		}
+        }
+        
+        currentModule.addDefinition(mtc);
+        
+	}
+	
+	/**
+	 * SYNTAX can take a variety of forms:
+	 * <p/>
+	 * SYNTAX       OCTET STRING (SIZE (6))
+	 * <p/>
+	 * SYNTAX       INTEGER { true(1), false(2) }
+	 * <p/>
+	 * SYNTAX       INTEGER {
+	 *                 other(1),       -- eh?
+	 *                 volatile(2),    -- e.g., in RAM
+	 *                 nonVolatile(3), -- e.g., in NVRAM
+	 *                 permanent(4),   -- e.g., partially in ROM
+	 *                 readOnly(5)     -- e.g., completely in ROM
+	 *             }
+	 * <p/>
+	 * SYNTAX INTEGER
+	 *            {
+	 *                cleared(1),
+	 *                indeterminate(2),
+	 *                critical(3),
+	 *                major(4),
+	 *                minor(5),
+	 *                warning(6),
+	 *                informational(7)
+	 *            }
+	 * <p/>
+	 * When we're finished parsing the SYNTAX, we're done parsing the textual convention.
+	 *
+	 * @param in the input file reader
+	 * @param first the line with SYNTAX on it
+	 * @param mtc the convention we're parsing
+	 * @throws IOException  
+	 */
+	void parseSyntax(LineNumberReader in, String first, MibTextualConvention mtc) throws IOException {
+		TokenArrayList tokens = null;
+		boolean haveLeftCurly = false;
+		boolean haveRightCurly = false;
+		
+		DebugInfo.debug(first);
+		
+		if (first.contains(LEFT_CURLY))
+			haveLeftCurly = true;
+		
+		if (first.contains(RIGHT_CURLY))
+			haveRightCurly = true;
+		
+		if (haveLeftCurly && haveRightCurly){
+			// One line enumeration
+		}
+		else{
+	        String line;
+	        while ((line = getNextLine(in)) != null) {
+	        	if (haveLeftCurly){
+	        		if (haveRightCurly && (line.length() == 0))
+	        			break;
+	        	}
+	        	else if (line.length() == 0)
+	        		break;
+	        	
+	        	if (line.contains(LEFT_CURLY))
+	        		haveLeftCurly = true;
+	        	if (line.contains(RIGHT_CURLY))
+	        		haveRightCurly = true;
+	        	
+	        	tokens = syntaxClassifier.classify(line, true);
+	        	
+	        	if (tokens.size() >= 4){
+	        		DebugInfo.debug("    " + tokens.nth(0).getValue() + " = " + tokens.nth(2).getValue());
+	        	}
+	        	
+	        }
+		}
 		
 	}
 	
