@@ -7,7 +7,9 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.TreeMap;
 
+import org.dmd.dmc.types.CheapSplitter;
 import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
 import org.dmd.util.parsing.Classifier;
@@ -65,7 +67,7 @@ public class MibParser {
 	
 	final static String IMPORTS_STR = "IMPORTS";
 	
-	Classifier	classifier;
+	Classifier	assignmentClassifier;
 	
 	Classifier	commaClassifier;
 	
@@ -89,9 +91,14 @@ public class MibParser {
 	// The MibLocation that started a particular parsing run
 	MibLocation	startLocation;
 	
+	// TEMPORARY
+	TreeMap<String,String>	syntaxes;
+	TreeMap<String,String>	objectSyntaxes;
+	TreeMap<String,String>  typeDefs;
+	
 	public MibParser(){
-		classifier = new Classifier();
-		classifier.addKeyword(ASSIGNMENT_STR, ASSIGNMENT_ID);
+		assignmentClassifier = new Classifier();
+		assignmentClassifier.addKeyword(ASSIGNMENT_STR, ASSIGNMENT_ID);
 		
 		commaClassifier = new Classifier();
 		commaClassifier.addKeyword(FROM_STR, FROM_ID);
@@ -106,8 +113,14 @@ public class MibParser {
 		syntaxClassifier.addSeparator(LEFT_ROUND, LEFT_ROUND_ID);
 		syntaxClassifier.addSeparator(RIGHT_ROUND, RIGHT_ROUND_ID);
 		syntaxClassifier.addSeparator(COMMA, COMMA_ID);
+		syntaxClassifier.addSeparator(LEFT_CURLY, LEFT_CURLY_ID);
+		syntaxClassifier.addSeparator(RIGHT_CURLY, RIGHT_CURLY_ID);
 		
 		parseImports = true;
+		
+		syntaxes = new TreeMap<String, String>();
+		objectSyntaxes = new TreeMap<String, String>();
+		typeDefs = new TreeMap<String, String>();
 	}
 	
 	/**
@@ -139,6 +152,21 @@ public class MibParser {
 		// We only try to resolve the OID structure if we've parsed everything
 		if (parseImports)
 			mibManager.resolveDefinitions();
+		
+		DebugInfo.debug("\n\nTEXTUAL CONVENTION SYNTAXES:\n\n");
+		for(String s: syntaxes.values()){
+			DebugInfo.debug("*" + s + "*");
+		}
+		
+		DebugInfo.debug("\n\nOBJECT SYNTAXES:\n\n");
+		for(String s: objectSyntaxes.values()){
+			DebugInfo.debug(s);
+		}
+		
+		DebugInfo.debug("\n\nTYPES:\n\n");
+		for(String s: typeDefs.values()){
+			DebugInfo.debug(s);
+		}
 	}
 
 	public void parseMibInternal(MibLocation loc) throws ResultException {
@@ -218,7 +246,10 @@ public class MibParser {
                 	parseTextualConvention(in, line);
                 }
                 else if (line.contains(ASSIGNMENT_STR)){
+                	ArrayList<String> tokens = CheapSplitter.split(line, ' ', false, true);
                 	
+                	if (tokens.size() == 2)
+                		parseType(in, line);
                 }
             }
             
@@ -521,6 +552,9 @@ public class MibParser {
         		}
         		haveAssignment = true;
         	}
+        	else if (line.startsWith(SYNTAX_STR)){
+        		objectSyntaxes.put(line, line + " " + currentModule.getName() + " " + lineNumber);
+        	}
         }
         
         MibOID oid = new MibOID(pname, name, id);
@@ -652,8 +686,8 @@ public class MibParser {
 		
         String line;
         while ((line = getNextLine(in)) != null) {
-    		if (line.contains(SYNTAX_STR)){
-    			parseSyntax(in,line,mtc);
+    		if (line.startsWith(SYNTAX_STR)){
+    			parseTextualConventionSyntax(in,line,mtc);
     			break;
     		}
         }
@@ -695,12 +729,15 @@ public class MibParser {
 	 * @param mtc the convention we're parsing
 	 * @throws IOException  
 	 */
-	void parseSyntax(LineNumberReader in, String first, MibTextualConvention mtc) throws IOException {
+	void parseTextualConventionSyntax(LineNumberReader in, String first, MibTextualConvention mtc) throws IOException {
 		TokenArrayList tokens = null;
 		boolean haveLeftCurly = false;
 		boolean haveRightCurly = false;
 		
 		DebugInfo.debug(first);
+		
+		tokens = syntaxClassifier.classify(first, true);
+		DebugInfo.debug("\n" + tokens.toString());
 		
 		if (first.contains(LEFT_CURLY))
 			haveLeftCurly = true;
@@ -708,6 +745,24 @@ public class MibParser {
 		if (first.contains(RIGHT_CURLY))
 			haveRightCurly = true;
 		
+		StringBuffer sb = new StringBuffer();
+		for(int i=1;i<tokens.size();i++){
+			if (tokens.nth(i).getType() == LEFT_CURLY_ID)
+				break;
+			if (tokens.nth(i).getType() == LEFT_ROUND_ID)
+				break;
+			
+			if (sb.length() == 0)
+				sb.append(tokens.nth(i).getValue());
+			else
+				sb.append(" " + tokens.nth(i).getValue());
+		}
+		
+		String s = sb.toString();
+		syntaxes.put(s, s);
+		
+		mtc.setBaseTypeName(s);
+				
 		if (haveLeftCurly && haveRightCurly){
 			// One line enumeration
 		}
@@ -736,6 +791,54 @@ public class MibParser {
 		}
 		
 	}
+	
+	/**
+	 * Types are defined by specifying "name ::=" followed by a variety other stuff! Examples follow:
+	 * <p/>
+	 * 
+	 * @param in
+	 * @param first
+	 * @throws IOException
+	 */
+	void parseType(LineNumberReader in, String first) throws IOException {
+    	TokenArrayList tokens = assignmentClassifier.classify(first, false);
+    	
+		DebugInfo.debug("Parsing type: " + tokens.nth(0).getValue());
+
+		if ( (tokens.size() == 2) && (tokens.nth(1).getType() == ASSIGNMENT_ID) ){
+    		typeDefs.put(tokens.nth(0).getValue(), tokens.nth(0).getValue()+ " " + currentModule.getName() + " " + in.getLineNumber());
+    	}
+		
+		MibType mt = new MibType(new MibDefinitionName(tokens.nth(0).getValue()));
+
+//    	if (tokens.size() != 3){
+//			DebugInfo.debug("TEXTUAL-CONVENTION - not enough tokens: " + first);
+//			return;
+//		}
+//		
+//		if (!tokens.nth(1).getValue().equals(ASSIGNMENT_STR)){
+//			DebugInfo.debug("Missing assignment operator in TEXTUAL-CONVENTION: " + first);
+//			return;
+//		}
+//		
+//		DebugInfo.debug("Parsing TEXTUAL-CONVENTION: " + tokens.nth(0).getValue());
+//		
+//		MibDefinitionName		mdn = new MibDefinitionName(tokens.nth(0).getValue());
+//		MibTextualConvention 	mtc = new MibTextualConvention(mdn);
+//		mtc.setLine(in.getLineNumber());
+//		
+        String line;
+        while ((line = getNextLine(in)) != null) {
+    		if (line.length() == 0)
+    			break;
+    		DebugInfo.debug("TYPELINE: " + line);
+        }
+//        
+        currentModule.addDefinition(mt);
+        
+	}
+	
+
 	
 	/**
 	 * Processes the line to remove comments.
