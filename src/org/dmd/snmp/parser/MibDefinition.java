@@ -59,4 +59,14 @@ abstract public class MibDefinition {
 	
 	abstract public String getDefinitionTypeName();
 	
+	public String toString(){
+		StringBuffer sb = new StringBuffer();
+		
+		sb.append(getDefinitionTypeName() + " ");
+		sb.append(dname.toString() + " ");
+		sb.append(module.getName() + " ");
+		sb.append(line + " ");
+		return(sb.toString());
+	}
+	
 }

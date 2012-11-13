@@ -11,15 +11,22 @@ public class MibModule {
 
 	String name;
 	
-	TreeMap<String,MibImport>		imports;
-	MibModuleIdentity				identity;
+	TreeMap<String,MibImport>				imports;
+	MibModuleIdentity						identity;
 	
-	TreeMap<String,MibDefinition>	definitions;
+	TreeMap<String,MibDefinition>			definitions;
+	
+	// Types include both explicitly defined types and MibTextualConventions
+	TreeMap<String,MibType>					types;
+	
+	TreeMap<String,MibTextualConvention>	textualConventions;
 	
 	public MibModule(String n){
-		name = n;
-		imports = new TreeMap<String, MibImport>();
-		definitions = new TreeMap<String, MibDefinition>();
+		name 				= n;
+		imports 			= new TreeMap<String, MibImport>();
+		definitions 		= new TreeMap<String, MibDefinition>();
+		types 				= new TreeMap<String, MibType>();
+		textualConventions 	= new TreeMap<String, MibTextualConvention>();
 	}
 	
 	public void addImport(MibImport i){
@@ -55,6 +62,9 @@ public class MibModule {
 		
 		if (md instanceof MibModuleIdentity)
 			identity = (MibModuleIdentity) md;
+		
+		if (md instanceof MibType)
+			types.put(md.getDefinitionName().getName(), (MibType) md);
 		
 		MibDefinition existing = definitions.get(md.getDefinitionName().getName());
 		

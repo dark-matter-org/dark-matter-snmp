@@ -12,6 +12,8 @@ import org.dmd.util.exceptions.ResultException;
  */
 public class MibManager {
 	
+	final static String SNMPv2_SMI_NAME = "SNMPv2-SMI";
+	
 	// The ISO root OID is never explicitly defined, so we create it.
 	static MibOID isoOID = new MibOID();
 	
@@ -25,6 +27,9 @@ public class MibManager {
 	
 	TreeMap<String,MibModule>	modules;
 	
+	// These are the statically defined base types
+	TreeMap<String,MibType>		baseTypes;
+	
 	public MibManager(){
 		oids 	= new TreeMap<String, MibOID>();
 		oids.put(isoOID.getName(), isoOID);
@@ -36,7 +41,34 @@ public class MibManager {
 		
 		modules = new TreeMap<String, MibModule>();
 	}
+	
+	void initBasetypes(){
+		MibType type = null;
+		baseTypes = new TreeMap<String, MibType>();
+		
+		// These are the IMPLICIT ASN.1 types
+		type = new MibType(new MibDefinitionName("INTEGER"),true);
+		type.setLine(142);
+		baseTypes.put(type.getDefinitionName().getName(), type);
 
+		type = new MibType(new MibDefinitionName("OCTET STRING"),true);
+		type.setLine(147);
+		baseTypes.put(type.getDefinitionName().getName(), type);
+
+		type = new MibType(new MibDefinitionName("OBJECT IDENTIFIER"),true);
+		type.setLine(150);
+		baseTypes.put(type.getDefinitionName().getName(), type);
+
+	}
+	
+	/**
+	 * Used to add the base types to the SNMPv2-SMI module when it has been read.
+	 * @param module
+	 */
+	void addBaseTypes(MibModule module){
+		
+	}
+	
 	public void addIdentifier(MibOID moi){
 		MibOID existing = oids.get(moi.getName());
 		
@@ -47,6 +79,9 @@ public class MibManager {
 	
 	public void addModule(MibModule mm){
 		modules.put(mm.getName(), mm);
+		
+		if (mm.getName().equals(SNMPv2_SMI_NAME))
+			addBaseTypes(mm);
 	}
 	
 	public boolean hasModule(String mn){

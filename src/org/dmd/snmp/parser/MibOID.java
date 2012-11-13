@@ -34,8 +34,8 @@ public class MibOID extends MibDefinitionName {
 		parentName		= null;
 		parentOID		= null;
 		id				= isoID;
-		fullID			= "" + isoID;
-		fullStringID	= "iso";
+		fullID			= "." + isoID;
+		fullStringID	= ".iso";
 	}
 	
 	/**
@@ -48,8 +48,8 @@ public class MibOID extends MibDefinitionName {
 		parentName		= null;
 		parentOID		= null;
 		id				= i;
-		fullID			= "" + id;
-		fullStringID	= "0";
+		fullID			= "." + id;
+		fullStringID	= ".0";
 	}
 	
 	public MibOID(String p, String n, int i){
