@@ -391,7 +391,7 @@ public class MibParser {
         
         currentModule.addDefinition(macro);
         
-        DebugInfo.debug(mdn.toString());
+//        DebugInfo.debug(mdn.toString());
 		
 	}
 	
@@ -452,7 +452,7 @@ public class MibParser {
         
         currentModule.addDefinition(identifier);
         
-        DebugInfo.debug(oid.toString());
+//        DebugInfo.debug(oid.toString());
 		
 	}
 	
