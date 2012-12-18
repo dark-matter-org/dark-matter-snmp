@@ -33,6 +33,8 @@ public class MibParserTest {
 		
 		parser.parseMib(rundir + "/mibs/BELAIR-NBI");
 		
+		parser.dumpSummary();
+		
 //		parser.parseMib(rundir + "/mibs/DOCS-IF-MIB");
 	}
 	

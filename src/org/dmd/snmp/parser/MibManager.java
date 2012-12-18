@@ -152,6 +152,30 @@ public class MibManager {
 		
 	}
 	
+	public void dumpSummary(){
+		for(MibOID oid: oids.values()){
+			System.out.println(oid.toString() + "\n" + oid.getFullStringID() + "\n");
+			
+			oidsByName.put(oid.getFullStringID(), oid);
+			oidsByNumber.put(oid.getFullID(), oid);
+		}
+	
+		System.out.println("\n\n");
+	
+		for(MibOID oid: oidsByName.values()){
+			if (oid.getDefinition() == null)
+				System.out.println(oid.getFullStringID() );
+			else
+				System.out.println(oid.getFullStringID() + "  from: " + oid.getDefinition().getModule().getName());
+		}
+	
+		System.out.println("\n\n");
+	
+		for(MibOID oid: oidsByNumber.values())
+			System.out.println(oid.getFullID());
+		
+	}
+	
 	void resolveOID(MibOID oid) throws ResultException{
 		if (oid.getParentOID() == null){
 			if (oid == isoOID)

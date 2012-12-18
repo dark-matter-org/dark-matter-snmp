@@ -168,6 +168,11 @@ public class MibParser {
 			DebugInfo.debug(s);
 		}
 	}
+	
+	public void dumpSummary(){
+		if (mibManager != null)
+			mibManager.dumpSummary();
+	}
 
 	public void parseMibInternal(MibLocation loc) throws ResultException {
 		MibLocation location = loc;
