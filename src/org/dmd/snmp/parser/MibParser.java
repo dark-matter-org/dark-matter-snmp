@@ -169,6 +169,10 @@ public class MibParser {
 		}
 	}
 	
+	public MibManager getMibManager(){
+		return(mibManager);
+	}
+	
 	public void dumpSummary(){
 		if (mibManager != null)
 			mibManager.dumpSummary();

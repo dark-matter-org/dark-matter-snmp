@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="extjars/snmp4j-2.1.0.jar"/>
 	<classpathentry kind="lib" path="extjars/snmp6_0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dark-matter-data"/>
+	<classpathentry kind="lib" path="extjars/commons-io-2.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
