@@ -3,6 +3,7 @@ package org.dmd.snmp.parser;
 import java.io.File;
 import java.io.IOException;
 
+import org.dmd.snmp.parser.doc.web.MibDoc;
 import org.dmd.util.exceptions.DebugInfo;
 import org.dmd.util.exceptions.ResultException;
 import org.junit.Before;
@@ -13,12 +14,18 @@ public class MibParserTest {
 	
 	static String rundir;
 	
+	static String workSpace;
+	
 	@Before
-	public void initialize() throws IOException{
+	public void initialize() throws IOException {
         File curr = new File(".");
         rundir = curr.getCanonicalPath();
 		System.out.println("*** Parsing running from: " + rundir);
 		
+		int lastSlash = rundir.lastIndexOf(File.separator);
+		workSpace = rundir.substring(0,lastSlash);
+		
+		System.out.println("*** Workspace = " + workSpace);
 	}
 
 	@Test
@@ -34,6 +41,10 @@ public class MibParserTest {
 		parser.parseMib(rundir + "/mibs/BELAIR-NBI");
 		
 		parser.dumpSummary();
+		
+		MibDoc mibdoc = new MibDoc();
+		
+		mibdoc.dumpDocumentation(workSpace + "/dark-matter-snmp/test/mibdocs", parser.getMibManager());
 		
 //		parser.parseMib(rundir + "/mibs/DOCS-IF-MIB");
 	}

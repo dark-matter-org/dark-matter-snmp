@@ -42,6 +42,13 @@ public class MibManager {
 		modules = new TreeMap<String, MibModule>();
 	}
 	
+	/**
+	 * @return the modules available in this manager.
+	 */
+	public Iterator<MibModule>	getModules(){
+		return(modules.values().iterator());
+	}
+	
 	void initBasetypes(){
 		MibType type = null;
 		baseTypes = new TreeMap<String, MibType>();

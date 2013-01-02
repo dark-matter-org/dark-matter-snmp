@@ -2,15 +2,21 @@ package org.dmd.snmp.parser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 public class MibImport {
 	
 	String mibName;
 	
-	ArrayList<String>	symbols;
+	TreeSet<String>	symbolsSorted;
+	ArrayList<String> symbols;
 	
 	public MibImport(String mn, ArrayList<String> s){
 		mibName = mn;
+		symbolsSorted = new TreeSet<String>();
+		for(String symbol: s){
+			symbolsSorted.add(symbol);
+		}
 		symbols = s;
 	}
 	
@@ -19,7 +25,7 @@ public class MibImport {
 	}
 
 	public Iterator<String> getSymbols(){
-		return(symbols.iterator());
+		return(symbolsSorted.iterator());
 	}
 	
 	public String toString(){
