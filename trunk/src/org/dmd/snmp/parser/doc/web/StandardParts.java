@@ -16,15 +16,15 @@ public class StandardParts {
 		out.write("\n");
 		out.write("<body>\n");
 		out.write("\n");
-//		out.write("  <div id=\"header\"> <div class=\"headerBar\"> </div> </div>\n");
-//		out.write("\n");
-//		out.write("  <div id=\"main\">\n\n");
+		out.write("  <div id=\"header\"> <div class=\"headerBar\"> </div> </div>\n");
+		out.write("\n");
+		out.write("  <div id=\"main\">\n\n");
 	}
 	
 	static void writePageFooter(BufferedWriter out) throws IOException {
-//		out.write("  </div> <!-- main -->\n");
-//		out.write("\n");
-//		out.write("  <div id=\"footer\"> </div>\n");
+		out.write("  </div> <!-- main -->\n");
+		out.write("\n");
+		out.write("  <div id=\"footer\"> </div>\n");
 		out.write("\n");
 		out.write("</body>\n");
 		out.write("\n");

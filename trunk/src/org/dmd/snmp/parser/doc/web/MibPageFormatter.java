@@ -24,11 +24,17 @@ public class MibPageFormatter {
 		
 		StandardParts.writePageHeader(out, "The " + module.getName() + " MIB");
 		
+		StandardParts.writeContentStart(out);
+
 		out.write("<div class=\"mibName\"> MIB: " + module.getName() + "</div>");
 		
 		dumpImports(out, module);
 		
 		dumpDefinitions(out, module);
+		
+		StandardParts.writeContentEnd(out);
+		
+		Summarizer.writeSidebar(out, mm);
 		
 		StandardParts.writePageFooter(out);
 		
@@ -38,6 +44,8 @@ public class MibPageFormatter {
 	static void dumpDefinitions(BufferedWriter out, MibModule module) throws IOException {
 		
 		out.write("<div class=\"definitionSummarySection\">\n\n");
+		
+		out.write("<h2> Definition Summary </h2>\n\n");
 		
 		out.write("<table>\n\n");
 		
@@ -77,6 +85,8 @@ public class MibPageFormatter {
 		
 		out.write("<div class=\"importSection\">\n\n");
 		
+		out.write("<h2> Imports </h2>\n\n");
+
 		out.write("<table>\n\n");
 		
 		while(imports.hasNext()){

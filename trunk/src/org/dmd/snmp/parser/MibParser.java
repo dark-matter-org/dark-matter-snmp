@@ -45,6 +45,9 @@ public class MibParser {
 	final static String RIGHT_ROUND	= ")";
 	final static int RIGHT_ROUND_ID = Token.CUSTOM + 8;
 	
+	final static String PERIOD	= ".";
+	final static int PERIOD_ID = Token.CUSTOM + 9;
+	
 	final static String OBJECT_IDENTIFIER_STR = "OBJECT IDENTIFIER";
 	
 	final static String MODULE_IDENTITY_STR = "MODULE-IDENTITY";
@@ -59,7 +62,9 @@ public class MibParser {
 	
 	final static String END_STR = "END";
 	
-	final static String SEQUENCE_STR = "SEQUENCE";
+	final static String SIZE_STR = "SIZE";
+	
+	final static String SEQUENCE_OF_STR = "SEQUENCE OF";
 	
 	final static String SYNTAX_STR = "SYNTAX";
 	
@@ -115,6 +120,7 @@ public class MibParser {
 		syntaxClassifier.addSeparator(COMMA, COMMA_ID);
 		syntaxClassifier.addSeparator(LEFT_CURLY, LEFT_CURLY_ID);
 		syntaxClassifier.addSeparator(RIGHT_CURLY, RIGHT_CURLY_ID);
+		syntaxClassifier.addSeparator(PERIOD, PERIOD_ID);
 		
 		parseImports = true;
 		
@@ -563,6 +569,8 @@ public class MibParser {
         	}
         	else if (line.startsWith(SYNTAX_STR)){
         		objectSyntaxes.put(line, line + " " + currentModule.getName() + " " + lineNumber);
+        		
+        		parseObjectTypeSyntax(in, line);
         	}
         }
         
@@ -575,6 +583,69 @@ public class MibParser {
         
         DebugInfo.debug(oid.toString());
 		
+	}
+	
+	/**
+	 * 
+	 * @param in
+	 * @param first
+	 * @return
+	 * What a dog's breakfast - what idiot would create a syntax that would allow keywords to have spaces!
+	 * SYNTAX RowStatus
+	 * SYNTAX INTEGER {
+	 * SYNTAX INTEGER { notInUse(1), inUse(2) }
+	 * SYNTAX OBJECT IDENTIFIER
+	 * SYNTAX INTEGER (0..127) 
+	 * SYNTAX DisplayString (SIZE (0..12))
+	 * SYNTAX OCTET STRING (SIZE (0..100))
+	 * SYNTAX SEQUENCE OF IfEntry
+	 */
+	MibSyntax parseObjectTypeSyntax(LineNumberReader in, String first){
+		MibSyntax rc = null;
+		boolean sequence 	= false;
+		boolean	sized 		= false;
+		boolean anyBrackets	= false;
+		
+		if (first.contains(SEQUENCE_OF_STR))
+			sequence = true;
+		
+		if (first.contains(SIZE_STR))
+			sized = true;
+		
+		if (first.contains(LEFT_CURLY)|| first.contains(LEFT_ROUND))
+			anyBrackets = true;
+		
+		TokenArrayList tokens = syntaxClassifier.classify(first, true);
+		
+		DebugInfo.debug("HERE\n" + first + "\n" + tokens.toString());
+		
+		if (anyBrackets){
+			
+		}
+		else{
+			StringBuffer name = new StringBuffer();
+			String spacer = "";
+			int start = 1;
+			if (sequence)
+				start = 3;
+			
+			for(int i=start; i<tokens.size(); i++){
+				name.append(spacer);
+				name.append(tokens.nth(i).getValue());
+				spacer = " ";
+			}
+			
+			rc = new MibSyntax(name.toString());
+		}
+		
+		if (rc != null){
+			rc.isSequence(sequence);
+			rc.isSized(sized);
+			
+			DebugInfo.debug("PARSED: " + rc.toString());
+		}
+				
+		return(rc);
 	}
 	
 	void parseNotificationType(LineNumberReader in, String first) throws IOException {
