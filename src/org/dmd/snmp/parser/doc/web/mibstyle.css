@@ -88,6 +88,17 @@ td {
 	width: 120px;
 }
 
+/*****************************************************************************/
+/* Section formatting */
+
+.importSection {
+	padding-top: 20px;
+}
+
+.definitionSummarySection {
+	padding-top: 20px;
+}
+
 .attributeSectionLabel {
 	margin-top: 30px;
 	padding-bottom: 5px;	
