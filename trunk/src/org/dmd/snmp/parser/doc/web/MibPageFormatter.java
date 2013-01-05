@@ -10,6 +10,7 @@ import org.dmd.snmp.parser.MibDefinition;
 import org.dmd.snmp.parser.MibImport;
 import org.dmd.snmp.parser.MibManager;
 import org.dmd.snmp.parser.MibModule;
+import org.dmd.snmp.parser.MibModuleIdentity;
 import org.dmd.snmp.parser.MibOID;
 
 /**
@@ -28,9 +29,13 @@ public class MibPageFormatter {
 
 		out.write("<div class=\"mibName\"> MIB: " + module.getName() + "</div>");
 		
+		// Dump the module identity
+		
 		dumpImports(out, module);
 		
-		dumpDefinitions(out, module);
+		dumpDefinitionSummary(out, module);
+		
+		dumpDefinitionDetails(out, module);
 		
 		StandardParts.writeContentEnd(out);
 		
@@ -41,7 +46,35 @@ public class MibPageFormatter {
 		out.close();
 	}
 	
-	static void dumpDefinitions(BufferedWriter out, MibModule module) throws IOException {
+	static void dumpDefinitionDetails(BufferedWriter out, MibModule module) throws IOException {
+		out.write("<div class=\"definitionDetailsSection\">\n\n");
+		
+		out.write("<h2> Definition Details </h2>\n\n");
+		
+		Iterator<MibDefinition> defs = module.getDefinitions();
+		while(defs.hasNext()){
+			MibDefinition def = defs.next();
+			
+			if (def instanceof MibModuleIdentity)
+				continue;
+			
+			out.write("<table>\n\n");
+
+			out.write("<tr> <td class=\"definitionName\" colspan=\"4\">\n");
+			out.write("  <a name=\"" + def.getDefinitionName().getName() + "\"> ");
+			out.write(def.getDefinitionName().getName());
+			out.write(" </a> " );
+			out.write("</td> </tr>");
+			
+			out.write("</table>\n\n");
+
+		}
+		
+		out.write("</div>\n\n");
+
+	}
+	
+	static void dumpDefinitionSummary(BufferedWriter out, MibModule module) throws IOException {
 		
 		out.write("<div class=\"definitionSummarySection\">\n\n");
 		
@@ -52,10 +85,16 @@ public class MibPageFormatter {
 		Iterator<MibDefinition> defs = module.getDefinitions();
 		while(defs.hasNext()){
 			MibDefinition def = defs.next();
+			
+			if (def instanceof MibModuleIdentity)
+				continue;
+			
 			out.write("<tr>\n");
 			
 			out.write("<td class=\"mibDefSummaryName\">\n");
+			out.write("<a class=\"deflink\" href=\"#" + def.getDefinitionName().getName() + "\"> ");
 			out.write(def.getDefinitionName().getName());
+			out.write(" </a> " );
 			out.write("</td>\n");
 
 			out.write("<td class=\"mibDefTypeSummaryName\">\n");

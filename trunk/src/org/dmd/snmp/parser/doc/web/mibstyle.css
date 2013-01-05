@@ -99,6 +99,10 @@ td {
 	padding-top: 20px;
 }
 
+.definitionDetailsSection {
+	padding-top: 20px;
+}
+
 .attributeSectionLabel {
 	margin-top: 30px;
 	padding-bottom: 5px;	
@@ -108,7 +112,7 @@ td {
 	background-color: #EEEEEE;
 }
 
-.className {
+.definitionName {
 	font-weight: bold;
 	font-size: larger;
 	padding-top: 50px;

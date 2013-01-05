@@ -98,10 +98,13 @@ public class MibSyntax {
 		if (isSquence())
 			sb.append("SEQUENCE OF ");
 		
-		sb.append(name);
+		sb.append(name + " ");
 		
 		if (isSized){
-			sb.append("(SIZE (" + start + ".." + end + "))");
+			if (end == null)
+				sb.append("(SIZE (" + start + "))");
+			else
+				sb.append("(SIZE (" + start + ".." + end + "))");
 		}
 		else{
 			if (start != null)
@@ -109,7 +112,16 @@ public class MibSyntax {
 		}
 		
 		if (enumValues != null){
-			
+			sb.append("{ ");
+			boolean first = true;
+			for(Integer value: enumValues.keySet()){
+				if (!first)
+					sb.append(", ");
+				
+				sb.append(enumValues.get(value) + "(" + value + ")");
+				first = false;
+			}
+			sb.append(" }");
 		}
 		
 		return(sb.toString());
