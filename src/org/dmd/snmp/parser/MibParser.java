@@ -70,7 +70,16 @@ public class MibParser {
 	
 	final static String NOTIFICATION_TYPE_STR = "NOTIFICATION-TYPE";
 	
+	final static String MAX_ACCESS_STR = "MAX-ACCESS";
+	
 	final static String IMPORTS_STR = "IMPORTS";
+	
+	final static String NOT_ACCESSIBLE = "not-accessible";
+	final static String ACCESSIBLE_FOR_NOTIFY = "accessible-for-notify";
+	final static String READ_ONLY = "read-only";
+	final static String READ_WRITE = "read-write";
+	final static String READ_CREATE = "read-create";
+	
 	
 	Classifier	assignmentClassifier;
 	
@@ -169,10 +178,10 @@ public class MibParser {
 			DebugInfo.debug(s);
 		}
 		
-		DebugInfo.debug("\n\nTYPES:\n\n");
-		for(String s: typeDefs.values()){
-			DebugInfo.debug(s);
-		}
+//		DebugInfo.debug("\n\nTYPES:\n\n");
+//		for(String s: typeDefs.values()){
+//			DebugInfo.debug(s);
+//		}
 	}
 	
 	public MibManager getMibManager(){
@@ -505,7 +514,7 @@ public class MibParser {
         
         MibOID oid = new MibOID(pname, name, id);
         
-        MibObjectIdenity identity = new MibObjectIdenity(oid);
+        MibObjectIdentity identity = new MibObjectIdentity(oid);
         identity.setLine(lineNumber);
         
         currentModule.addDefinition(identity);
@@ -516,6 +525,7 @@ public class MibParser {
 	
 	/**
 	 * Parses OBJECT-TYPE sections
+	 * See SNMPv2-SMI - line 222 - for the definition of the syntax for this.
 	 * <pre>
 	 * alarmModelLastChanged  OBJECT-TYPE
 	 *      SYNTAX      TimeTicks
@@ -538,8 +548,10 @@ public class MibParser {
 	 * @throws IOException  
 	 */
 	void parseObjectType(LineNumberReader in, String first) throws IOException {
-		TokenArrayList tokens = curlyClassifier.classify(first, true);
-		int lineNumber = in.getLineNumber();
+		MibSyntax		syntax = null;
+		MaxAccessEnum	max	= null;
+		TokenArrayList 	tokens = curlyClassifier.classify(first, true);
+		int 			lineNumber = in.getLineNumber();
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= null;
@@ -570,19 +582,48 @@ public class MibParser {
         	else if (line.startsWith(SYNTAX_STR)){
         		objectSyntaxes.put(line, line + " " + currentModule.getName() + " " + lineNumber);
         		
-        		parseObjectTypeSyntax(in, line);
+        		syntax = parseObjectTypeSyntax(in, line);
+        		
+        		// Tricky crap: the syntax may span several lines and we don't necessarily know that we've finished
+        		// parsing it until we've encountered the MAX-ACCESS line. We always use the getNextLine() method to read
+        		// the next line from the reader, so we'll check here to see if we've jumped ahead to that line
+        		
+        		if (currentLine.contains(MAX_ACCESS_STR)){
+        			max = getMaxAccess(currentLine);
+        		}
+        	}
+        	else if (line.contains(MAX_ACCESS_STR)){
+        		max = getMaxAccess(line);
         	}
         }
         
         MibOID oid = new MibOID(pname, name, id);
         
         MibObjectType objtype = new MibObjectType(oid);
+        
+        objtype.setSyntax(syntax);
         objtype.setLine(lineNumber);
+        objtype.setMaxAccess(max);
         
         currentModule.addDefinition(objtype);
         
         DebugInfo.debug(oid.toString());
 		
+	}
+	
+	MaxAccessEnum getMaxAccess(String line){
+		if(line.contains(NOT_ACCESSIBLE))
+			return(MaxAccessEnum.NOT_ACCESSIBLE);
+		else if(line.contains(ACCESSIBLE_FOR_NOTIFY))
+			return(MaxAccessEnum.ACCESSIBLE_FOR_NOTIFY);
+		else if(line.contains(READ_ONLY))
+			return(MaxAccessEnum.READ_ONLY);
+		else if(line.contains(READ_WRITE))
+			return(MaxAccessEnum.READ_WRITE);
+		else if(line.contains(READ_CREATE))
+			return(MaxAccessEnum.READ_CREATE);
+		
+		return(null);
 	}
 	
 	/**
@@ -592,19 +633,47 @@ public class MibParser {
 	 * @return
 	 * What a dog's breakfast - what idiot would create a syntax that would allow keywords to have spaces!
 	 * SYNTAX RowStatus
-	 * SYNTAX INTEGER {
-	 * SYNTAX INTEGER { notInUse(1), inUse(2) }
 	 * SYNTAX OBJECT IDENTIFIER
+	 * SYNTAX SEQUENCE OF IfEntry
+	 * 
 	 * SYNTAX INTEGER (0..127) 
+	 * SYNTAX OCTET STRING (SIZE (6))
 	 * SYNTAX DisplayString (SIZE (0..12))
 	 * SYNTAX OCTET STRING (SIZE (0..100))
-	 * SYNTAX SEQUENCE OF IfEntry
+	 * 
+	 * SYNTAX INTEGER {
+	 * SYNTAX INTEGER { notInUse(1), inUse(2) }
+	 * SYNTAX INTEGER
+	 *            {
+	 *                cleared(1),
+	 *                indeterminate(2),
+	 *                critical(3),
+	 *                major(4),
+	 *                minor(5),
+	 *                warning(6),
+	 *                informational(7)
+	 *            }
+	 * @throws IOException  
 	 */
-	MibSyntax parseObjectTypeSyntax(LineNumberReader in, String first){
+	MibSyntax parseObjectTypeSyntax(LineNumberReader in, String first) throws IOException {
 		MibSyntax rc = null;
 		boolean sequence 	= false;
 		boolean	sized 		= false;
 		boolean anyBrackets	= false;
+		boolean leftCurly 	= false;
+		boolean rightCurly 	= false;
+		boolean leftRound 	= false;
+		
+		DebugInfo.debug(first);
+		
+		if (first.contains(LEFT_CURLY))
+			leftCurly = true;
+		
+		if (first.contains(RIGHT_CURLY))
+			rightCurly = true;
+		
+		if (first.contains(LEFT_ROUND))
+			leftRound = true;
 		
 		if (first.contains(SEQUENCE_OF_STR))
 			sequence = true;
@@ -612,7 +681,7 @@ public class MibParser {
 		if (first.contains(SIZE_STR))
 			sized = true;
 		
-		if (first.contains(LEFT_CURLY)|| first.contains(LEFT_ROUND))
+		if (leftCurly || leftRound)
 			anyBrackets = true;
 		
 		TokenArrayList tokens = syntaxClassifier.classify(first, true);
@@ -620,9 +689,133 @@ public class MibParser {
 		DebugInfo.debug("HERE\n" + first + "\n" + tokens.toString());
 		
 		if (anyBrackets){
-			
+			if (leftCurly){
+				// We have any enumeration, either on one line or several - this doesn't guarantee that it doesn't
+				// start on the next line, but we'll check that later
+				
+				if (leftCurly && rightCurly){
+					DebugInfo.debug("SINGLE LINE ENUMERATION");
+					rc = new MibSyntax(tokens.nth(1).getValue());
+
+					// An enumeration on one line: SYNTAX INTEGER { notInUse(1), inUse(2) }
+					for(int i=3; i<tokens.size(); ){
+		        		int value = Integer.parseInt(tokens.nth(i+2).getValue());
+		        		
+		        		rc.addEnumValue(tokens.nth(i).getValue(), value);
+						
+		        		i+=5;
+					}
+				}
+				else{
+					DebugInfo.debug("MULTI LINE ENUMERATION");
+					rc = new MibSyntax(tokens.nth(1).getValue());
+					
+					boolean haveLeftCurly = leftCurly;
+					boolean haveRightCurly = false;
+					
+			        String line;
+			        while ((line = getNextLine(in)) != null) {
+			        	if (haveLeftCurly){
+//			        		if (haveRightCurly && (line.length() == 0))
+				        	if (haveRightCurly)
+			        			break;
+			        	}
+			        	else if (line.length() == 0)
+			        		break;
+			        	
+			        	if (line.contains(LEFT_CURLY))
+			        		haveLeftCurly = true;
+			        	if (line.contains(RIGHT_CURLY))
+			        		haveRightCurly = true;
+			        	
+			        	tokens = syntaxClassifier.classify(line, true);
+			        	
+			        	if (tokens.size() >= 4){
+			        		DebugInfo.debug("    SYNTAX ENUM VALUE  " + tokens.nth(0).getValue() + " = " + tokens.nth(2).getValue());
+			        		int value = Integer.parseInt(tokens.nth(2).getValue());
+			        		
+			        		rc.addEnumValue(tokens.nth(0).getValue(), value);
+			        	}
+					}
+					
+				}
+			}
+			else{
+				String name = "";
+				
+				// Reclassify and strip the separators
+				tokens = syntaxClassifier.classify(first, false);
+
+				// We have right brackets
+				if (sized){
+					if (first.contains("..")){
+						// We have a range:
+						DebugInfo.debug("SIZE WITH RANGE");
+						int rstart = 0;
+						int rend = 0;
+						
+						if (tokens.size() == 5){
+							// SYNTAX DisplayString (SIZE (0..12))
+							rstart = Integer.parseInt(tokens.nth(3).getValue());
+							rend = Integer.parseInt(tokens.nth(4).getValue());
+							name = tokens.nth(1).getValue();
+						}
+						else if (tokens.size() == 6){
+							// SYNTAX OCTET STRING (SIZE (0..100))
+							rstart = Integer.parseInt(tokens.nth(4).getValue());
+							rend = Integer.parseInt(tokens.nth(5).getValue());
+							name = tokens.nth(1).getValue() + " " + tokens.nth(2).getValue();
+						}
+						else{
+							throw(new IllegalStateException("Don't know how to parse: " + first));
+						}
+						
+						rc = new MibSyntax(name);
+						rc.setStart(rstart);
+						rc.setEnd(rend);
+						
+					}
+					else{
+						// It's just a straight SIZE: SYNTAX OCTET STRING (SIZE (6))
+						DebugInfo.debug("JUST SIZED");
+						int size = 0;
+						
+						if (tokens.size() == 4){
+							name = tokens.nth(1).getValue();
+							size = Integer.parseInt(tokens.nth(3).getValue());
+						}
+						else if (tokens.size() == 5){
+							name = tokens.nth(1).getValue() + " " + tokens.nth(2).getValue();
+							size = Integer.parseInt(tokens.nth(4).getValue());
+						}
+						else{
+							throw(new IllegalStateException("Don't know how to parse: " + first));
+						}
+	
+						rc = new MibSyntax(name);
+						rc.setStart(size);
+					}
+					
+					
+				}
+				else{
+					// We have a range: SYNTAX INTEGER (0..127) 
+					
+					// The last two tokens will be the start/end of the range
+					DebugInfo.debug("RANGE");
+					
+					rc = new MibSyntax(tokens.nth(1).getValue());
+					
+					int rstart = Integer.parseInt(tokens.nth(2).getValue());
+					int rend = Integer.parseInt(tokens.nth(3).getValue());
+					
+					rc.setStart(rstart);
+					rc.setEnd(rend);
+				}
+			}
 		}
 		else{
+			// 
 			StringBuffer name = new StringBuffer();
 			String spacer = "";
 			int start = 1;
@@ -641,6 +834,42 @@ public class MibParser {
 		if (rc != null){
 			rc.isSequence(sequence);
 			rc.isSized(sized);
+			
+			// And finally, we have to look one more line ahead to be sure that we don't 
+			// have an open left curly that indicates the beginning of an enumeration.
+			// What a pain in the butt!
+			String line = getNextLine(in);
+			
+			if (line.contains(LEFT_CURLY)){
+				DebugInfo.debug("HANGING ENUMERATION");
+				boolean haveLeftCurly = true;
+				boolean haveRightCurly = false;
+				
+		        while ((line = getNextLine(in)) != null) {
+		        	if (haveLeftCurly){
+//		        		if (haveRightCurly && (line.length() == 0))
+			        	if (haveRightCurly)
+		        			break;
+		        	}
+		        	else if (line.length() == 0)
+		        		break;
+		        	
+		        	if (line.contains(LEFT_CURLY))
+		        		haveLeftCurly = true;
+		        	if (line.contains(RIGHT_CURLY))
+		        		haveRightCurly = true;
+		        	
+		        	tokens = syntaxClassifier.classify(line, true);
+		        	
+		        	if (tokens.size() >= 4){
+		        		DebugInfo.debug("    HANGING ENUM VALUE  " + tokens.nth(0).getValue() + " = " + tokens.nth(2).getValue());
+		        		int value = Integer.parseInt(tokens.nth(2).getValue());
+		        		
+		        		rc.addEnumValue(tokens.nth(0).getValue(), value);
+		        	}
+				}
+				
+			}
 			
 			DebugInfo.debug("PARSED: " + rc.toString());
 		}
@@ -864,7 +1093,7 @@ public class MibParser {
 	        	tokens = syntaxClassifier.classify(line, true);
 	        	
 	        	if (tokens.size() >= 4){
-	        		DebugInfo.debug("    " + tokens.nth(0).getValue() + " = " + tokens.nth(2).getValue());
+	        		DebugInfo.debug("    TXTCONV ENUM VALUE  " + tokens.nth(0).getValue() + " = " + tokens.nth(2).getValue());
 	        	}
 	        	
 	        }

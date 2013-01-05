@@ -11,11 +11,11 @@ package org.dmd.snmp.parser;
             ::= { someSystemParent 1 }
 
  */
-public class MibObjectIdenity extends MibDefinition {
+public class MibObjectIdentity extends MibDefinition {
 
 	static String defTypeName = "OBJECT-IDENTITY";
 
-	public MibObjectIdenity(MibOID moi){
+	public MibObjectIdentity(MibOID moi){
 		super(moi);
 	}
 	

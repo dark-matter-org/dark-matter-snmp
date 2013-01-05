@@ -40,7 +40,7 @@ public class MibParserTest {
 		
 		parser.parseMib(rundir + "/mibs/BELAIR-NBI");
 		
-		parser.dumpSummary();
+//		parser.dumpSummary();
 		
 		MibDoc mibdoc = new MibDoc();
 		
