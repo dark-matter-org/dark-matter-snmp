@@ -74,11 +74,17 @@ public class MibParser {
 	
 	final static String IMPORTS_STR = "IMPORTS";
 	
+	final static String DESCRIPTION_STR = "DESCRIPTION";
+	
 	final static String NOT_ACCESSIBLE = "not-accessible";
 	final static String ACCESSIBLE_FOR_NOTIFY = "accessible-for-notify";
 	final static String READ_ONLY = "read-only";
 	final static String READ_WRITE = "read-write";
 	final static String READ_CREATE = "read-create";
+	
+	final static String CURRENT		= "current";
+	final static String DEPRECATED	= "deprecated";
+	final static String OBSOLETE	= "obsolete";
 	
 	
 	Classifier	assignmentClassifier;
