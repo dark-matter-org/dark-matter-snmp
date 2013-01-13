@@ -76,6 +76,8 @@ public class MibParser {
 	
 	final static String DESCRIPTION_STR = "DESCRIPTION";
 	
+	final static String REVISION_STR = "REVISION";
+	
 	final static String NOT_ACCESSIBLE = "not-accessible";
 	final static String ACCESSIBLE_FOR_NOTIFY = "accessible-for-notify";
 	final static String READ_ONLY = "read-only";
@@ -561,6 +563,7 @@ public class MibParser {
 		
 		String 	name 	= tokens.nth(0).getValue();
 		String 	pname	= null;
+		String description	= null;
 		int		id 		= -1;
 		boolean	haveAssignment 	= false;
 		
@@ -601,6 +604,9 @@ public class MibParser {
         	else if (line.contains(MAX_ACCESS_STR)){
         		max = getMaxAccess(line);
         	}
+        	else if (line.contains(DESCRIPTION_STR)){
+        		description = parseDescription(in, first);
+        	}
         }
         
         MibOID oid = new MibOID(pname, name, id);
@@ -610,6 +616,7 @@ public class MibParser {
         objtype.setSyntax(syntax);
         objtype.setLine(lineNumber);
         objtype.setMaxAccess(max);
+        objtype.setDescription(description);
         
         currentModule.addDefinition(objtype);
         
@@ -927,13 +934,20 @@ public class MibParser {
 	 * @throws IOException  
 	 */
 	void parseModuleIdentity(LineNumberReader in, String first) throws IOException {
-		TokenArrayList tokens = commaClassifier.classify(first, false);
-		int lineNumber = in.getLineNumber();
+		TokenArrayList 	tokens 			= commaClassifier.classify(first, false);
+		int 			lineNumber 		= in.getLineNumber();
 		
-		String 	name 			= tokens.nth(0).getValue();
-		String 	pname			= null;
-		int		id 				= -1;
-		boolean	haveAssignment 	= false;
+		String 			name 			= tokens.nth(0).getValue();
+		String 			pname			= null;
+		String 			description		= null;
+		String			mmiDescr		= null;
+		int				id 				= -1;
+		boolean			haveAssignment 	= false;
+		MibRevision		mibrev			= null;
+		ArrayList<MibRevision>			revs = new ArrayList<MibRevision>();
+		
+		if (first.contains("ianaifType"))
+			DebugInfo.debug("IANA");
 		
         String	line;
         while ((line = getNextLine(in)) != null) {
@@ -950,14 +964,30 @@ public class MibParser {
         		id		= Integer.parseInt(tokens.nth(3).getValue());
         		haveAssignment = true;
         	}
+        	else if (line.contains(REVISION_STR)){
+        		int start = line.indexOf('"');
+        		int end = line.indexOf('"', start+1);
+        		mibrev = new MibRevision(line.substring(start+1,end));
+        		revs.add(mibrev);
+        	}
+        	else if (line.contains(DESCRIPTION_STR)){
+        		description = parseDescription(in, line);
+        		if (mibrev == null)
+        			mmiDescr = description;
+        		else
+        			mibrev.setDescription(description);
+       	
+        	}
         }
         
         MibOID oid = new MibOID(pname, name, id);
         
         MibModuleIdentity mmi = new MibModuleIdentity(oid);
         mmi.setLine(lineNumber);
+        mmi.setDescription(mmiDescr);
+        mmi.setRevisions(revs);
         
-        currentModule.addDefinition(mmi);
+        currentModule.setModuleIdentity(mmi);
         
         DebugInfo.debug(oid.toString());
 		
@@ -1004,6 +1034,9 @@ public class MibParser {
     		if (line.startsWith(SYNTAX_STR)){
     			parseTextualConventionSyntax(in,line,mtc);
     			break;
+    		}
+    		else if (line.contains(DESCRIPTION_STR)){
+    			mtc.setDescription(parseDescription(in, line));
     		}
         }
         
@@ -1153,6 +1186,99 @@ public class MibParser {
         
 	}
 	
+	/**
+	 * Parses DESCRIPTIONs:
+	 * DESCRIPTION
+	 * "blah blah blah"
+	 * 
+	 * DESCRIPTION
+	 * "blah blah
+	 * bla
+	 * blah blah"
+	 * 
+	 * DESCRIPTION
+	 * "blah blah
+	 * blah
+	 * "
+	 * 
+	 * DESCRIPTION "blah bla"
+	 * 
+	 * DESCRIPTION "blah
+	 * blah"
+	 * 
+	 * @param in
+	 * @param first
+	 * @return
+	 * @throws IOException 
+	 */
+	String parseDescription(LineNumberReader in, String first) throws IOException{
+		StringBuffer sb = new StringBuffer();
+		boolean haveOpen = false;
+		boolean haveClose = false;
+		int lineCount = 0;
+		int openIndex = 0;
+		int closeIndex = 0;
+		
+		DebugInfo.debug("PARSING DESCRIPTION");
+		
+		if (first.contains("\"")){
+			openIndex = first.indexOf('"');
+			closeIndex = first.indexOf('"', openIndex+1);
+			
+			if (openIndex != -1)
+				haveOpen = true;
+			if (closeIndex != -1)
+				haveClose = true;
+			
+			// All on one line
+			if (haveOpen && haveClose)
+				sb.append(first.substring(openIndex+1, closeIndex));
+			else
+				sb.append(first.substring(openIndex+1));
+			
+		}
+		
+		if (!(haveOpen && haveClose)){
+		
+	        String line;
+	        while ((line = getNextLine(in)) != null) {
+	        	
+	        	DebugInfo.debug("LINE: " + line);
+				if (!haveOpen){
+					openIndex = line.indexOf('"');
+					if (openIndex != -1)
+						haveOpen = true;
+					
+					closeIndex = line.lastIndexOf('"');
+					if (closeIndex != -1){
+						if (closeIndex > openIndex)
+							haveClose = true;
+					}
+				}
+				else if (!haveClose){
+					if (line.contains("\""))
+						haveClose = true;
+				}
+				
+				if (lineCount > 0){
+					sb.append("\n<br>" + line);
+				}
+				else
+					sb.append(line);
+				
+				if (haveOpen && haveClose)
+					break;
+				
+				lineCount++;
+			}
+		}
+        
+        String rc = sb.toString().replaceAll("\"", "");
+        
+        DebugInfo.debug("DESCRIPTION: " + rc);
+		
+		return(rc);
+	}
 
 	
 	/**

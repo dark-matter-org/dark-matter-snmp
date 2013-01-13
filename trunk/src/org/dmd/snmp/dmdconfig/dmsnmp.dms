@@ -1,0 +1,12 @@
+SchemaDefinition
+name            	dmsnmp
+schemaPackage   	org.dmd.snmp.shared
+//dmwPackage    		com.google.gwt.sample.contacts.server
+//dmwTypeToPackage	gxt com.google.gwt.sample.contacts.client
+schemaBaseID    	-470000
+schemaIDRange   	50
+//dependsOn       dmr.base
+//defFiles			types.dmd
+//defFiles        	attributes.dmd
+defFiles        	classes.dmd
+description		The dark-matter SNMP (dmsnmp) schema defines objects that align to the SNMP MIB definitions.

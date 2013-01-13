@@ -15,7 +15,9 @@ abstract public class MibDefinition {
 	
 	// The line in the module from which this definition was read
 	Integer		line;
-	
+
+	String			description;
+
 //	protected MibDefinition(){
 //		dname = null;
 //	}
@@ -68,5 +70,14 @@ abstract public class MibDefinition {
 		sb.append(line + " ");
 		return(sb.toString());
 	}
+	
+	public void setDescription(String d){
+		description = d;
+	}
+	
+	public String getDescription(){
+		return(description);
+	}
+	
 	
 }

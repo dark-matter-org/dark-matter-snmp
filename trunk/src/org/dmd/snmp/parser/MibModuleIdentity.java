@@ -1,5 +1,8 @@
 package org.dmd.snmp.parser;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * The MibModuleIdentity class is used to store information from the MODULE-IDENTITY
  * section of a MIB module. Example:
@@ -48,13 +51,31 @@ package org.dmd.snmp.parser;
 public class MibModuleIdentity extends MibDefinition {
 	
 	static String defTypeName = "MODULE-IDENTITY";
+	
+	ArrayList<MibRevision>	revisions;
 
 	public MibModuleIdentity(MibOID moi){
 		super(moi);
+		revisions = new ArrayList<MibRevision>();
 	}
 
 	@Override
 	public String getDefinitionTypeName() {
 		return(defTypeName);
 	}
+	
+	public void setRevisions(ArrayList<MibRevision> revs){
+		revisions = revs;
+	}
+	
+	public Iterator<MibRevision>	getRevisions(){
+		return(revisions.iterator());
+	}
+	
+	public boolean hasRevisions(){
+		if (revisions.size() > 0)
+			return(true);
+		return(false);
+	}
+	
 }
