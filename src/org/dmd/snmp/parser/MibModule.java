@@ -35,6 +35,12 @@ public class MibModule {
 	
 	public void setModuleIdentity(MibModuleIdentity mmi){
 		identity = mmi;
+		
+		addDefinition(mmi);
+	}
+	
+	public MibModuleIdentity getIdentity(){
+		return(identity);
 	}
 	
 	/**

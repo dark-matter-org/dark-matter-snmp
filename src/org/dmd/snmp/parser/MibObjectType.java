@@ -23,4 +23,5 @@ public class MibObjectType extends MibDefinition {
 	public void setMaxAccess(MaxAccessEnum ma){
 		maxAccess = ma;
 	}
+	
 }
