@@ -95,7 +95,17 @@ public class MibPageFormatter {
 			}
 		}
 
-
+		if (identity.getOrganization() != null){
+			out.write("<tr>\n");
+			out.write("<td class=\"spacer\"> </td>\n");
+			out.write("<td class=\"label\"> Organization\n");
+			out.write("</td>\n");
+			out.write("<td colspan=\"2\"> " + identity.getOrganization() + "\n");
+			out.write("</td>\n");
+			out.write("</tr>");
+		}
+		
+		
 		out.write("<tr>\n");
 		out.write("<td class=\"spacer\"> </td>\n");
 		out.write("<td class=\"label\"> Description\n");
@@ -137,7 +147,18 @@ public class MibPageFormatter {
 				first = false;
 			}
 		}
+
+		if (identity.getContact() != null){
+			out.write("<tr>\n");
+			out.write("<td class=\"spacer\"> </td>\n");
+			out.write("<td class=\"label\"> Contact\n");
+			out.write("</td>\n");
+			out.write("<td colspan=\"2\"> " + identity.getContact() + "\n");
+			out.write("</td>\n");
+			out.write("</tr>");
+		}
 		
+
 		out.write("</table>\n\n");
 		
 		out.write("</div>\n\n");
