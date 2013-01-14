@@ -53,6 +53,10 @@ public class MibModuleIdentity extends MibDefinition {
 	static String defTypeName = "MODULE-IDENTITY";
 	
 	ArrayList<MibRevision>	revisions;
+	
+	String	organization;
+	
+	String 	contactInfo;
 
 	public MibModuleIdentity(MibOID moi){
 		super(moi);
@@ -78,4 +82,19 @@ public class MibModuleIdentity extends MibDefinition {
 		return(false);
 	}
 	
+	public void setOrganization(String o){
+		organization = o;
+	}
+	
+	public void setContactInfo(String ci){
+		contactInfo = ci;
+	}
+	
+	public String getContact(){
+		return(contactInfo);
+	}
+	
+	public String getOrganization(){
+		return(organization);
+	}
 }

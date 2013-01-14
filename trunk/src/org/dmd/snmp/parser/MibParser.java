@@ -56,6 +56,10 @@ public class MibParser {
 	
 	final static String OBJECT_TYPE_STR = "OBJECT-TYPE";
 	
+	final static String CONTACT_INFO_STR = "CONTACT-INFO";
+	
+	final static String ORGANIZATION_STR = "ORGANIZATION";
+	
 	final static String TEXTUAL_CONVENTION_STR = "TEXTUAL-CONVENTION";
 	
 	final static String MACRO_STR = "MACRO";
@@ -605,7 +609,7 @@ public class MibParser {
         		max = getMaxAccess(line);
         	}
         	else if (line.contains(DESCRIPTION_STR)){
-        		description = parseDescription(in, first);
+        		description = parseTextSection(in, first);
         	}
         }
         
@@ -940,6 +944,8 @@ public class MibParser {
 		String 			name 			= tokens.nth(0).getValue();
 		String 			pname			= null;
 		String 			description		= null;
+		String			contact			= null;
+		String			org				= null;
 		String			mmiDescr		= null;
 		int				id 				= -1;
 		boolean			haveAssignment 	= false;
@@ -971,12 +977,17 @@ public class MibParser {
         		revs.add(mibrev);
         	}
         	else if (line.contains(DESCRIPTION_STR)){
-        		description = parseDescription(in, line);
+        		description = parseTextSection(in, line);
         		if (mibrev == null)
         			mmiDescr = description;
         		else
         			mibrev.setDescription(description);
-       	
+        	}
+        	else if (line.contains(ORGANIZATION_STR)){
+            	org = parseTextSection(in, line);
+        	}
+        	else if (line.contains(CONTACT_INFO_STR)){
+            	contact = parseTextSection(in, line);
         	}
         }
         
@@ -986,6 +997,8 @@ public class MibParser {
         mmi.setLine(lineNumber);
         mmi.setDescription(mmiDescr);
         mmi.setRevisions(revs);
+        mmi.setContactInfo(contact);
+        mmi.setOrganization(org);
         
         currentModule.setModuleIdentity(mmi);
         
@@ -1036,7 +1049,7 @@ public class MibParser {
     			break;
     		}
     		else if (line.contains(DESCRIPTION_STR)){
-    			mtc.setDescription(parseDescription(in, line));
+    			mtc.setDescription(parseTextSection(in, line));
     		}
         }
         
@@ -1211,7 +1224,7 @@ public class MibParser {
 	 * @return
 	 * @throws IOException 
 	 */
-	String parseDescription(LineNumberReader in, String first) throws IOException{
+	String parseTextSection(LineNumberReader in, String first) throws IOException{
 		StringBuffer sb = new StringBuffer();
 		boolean haveOpen = false;
 		boolean haveClose = false;
@@ -1260,9 +1273,8 @@ public class MibParser {
 						haveClose = true;
 				}
 				
-				if (lineCount > 0){
+				if (lineCount > 0)
 					sb.append("\n<br>" + line);
-				}
 				else
 					sb.append(line);
 				
