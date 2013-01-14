@@ -1,0 +1,7 @@
+AttributeDefinition
+name                lastUpdated
+dmdID				1
+type                ExtUTCTime
+valueType			MULTI
+description			A unique identifier that is generated on a client to distinguish the
+ responses that are associated with a given request.
