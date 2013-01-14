@@ -6,7 +6,7 @@ schemaPackage   	org.dmd.snmp.shared
 schemaBaseID    	-470000
 schemaIDRange   	50
 //dependsOn       dmr.base
-//defFiles			types.dmd
-//defFiles        	attributes.dmd
+defFiles			types.dmd
+defFiles        	attributes.dmd
 defFiles        	classes.dmd
 description		The dark-matter SNMP (dmsnmp) schema defines objects that align to the SNMP MIB definitions.
