@@ -1145,10 +1145,14 @@ public class MibParser {
 	        	tokens = syntaxClassifier.classify(line, true);
 	        	
 	        	if (tokens.size() >= 4){
+	        		int intval = Integer.parseInt(tokens.nth(2).getValue());
+	        		mtc.addEnumValue(tokens.nth(0).getValue(), intval);
 	        		DebugInfo.debug("    TXTCONV ENUM VALUE  " + tokens.nth(0).getValue() + " = " + tokens.nth(2).getValue());
 	        	}
 	        	
 	        }
+	        
+	        DebugInfo.debug(mtc.getSyntax().toString());
 		}
 		
 	}
