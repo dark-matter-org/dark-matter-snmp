@@ -100,7 +100,7 @@ public class MibSyntax {
 		
 		sb.append(name + " ");
 		
-		if (isSized){
+		if ( (isSized != null) && isSized){
 			if (end == null)
 				sb.append("(SIZE (" + start + "))");
 			else
