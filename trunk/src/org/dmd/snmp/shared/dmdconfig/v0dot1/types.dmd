@@ -1,0 +1,6 @@
+TypeDefinition
+name			ExtUTCTime
+typeClassName	org.dmd.snmp.shared.types.DmcTypeExtUTCTime
+primitiveType	org.dmd.snmp.shared.types.ExtUTCTime
+description		The ExtUTCTime type is used to display times in human readable format as
+ defined in SNMPv2-SMI. The format is YYMMDDHHMMZ or YYYYMMDDHHMMZ.
