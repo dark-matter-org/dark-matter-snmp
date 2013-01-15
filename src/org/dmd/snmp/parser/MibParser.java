@@ -1204,7 +1204,7 @@ public class MibParser {
 	}
 	
 	/**
-	 * Parses DESCRIPTIONs:
+	 * Parses quoted sections of text like DESCRIPTIONs:
 	 * DESCRIPTION
 	 * "blah blah blah"
 	 * 
