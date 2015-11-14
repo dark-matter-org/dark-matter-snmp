@@ -1,0 +1,1 @@
+The dark-matter-snmp project leverages the existing dark-matter schema mechanisms to provide easy mapping between SNMP MIB objects and Dark Matter Objects (DMOs).
